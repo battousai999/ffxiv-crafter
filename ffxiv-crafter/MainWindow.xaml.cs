@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,9 +24,11 @@ namespace ffxiv_crafter
     {
         private List<CraftingItem> validCraftingItems = new List<CraftingItem>();
         private List<CraftingMaterial> materialItems = new List<CraftingMaterial>();
+        private List<SpecifiedCraftingItem> craftingItems = new List<SpecifiedCraftingItem>();
 
-        public ObservableCollection<SpecifiedCraftingItem> CraftingItems { get; } = new ObservableCollection<SpecifiedCraftingItem>();
+        public IEnumerable<SpecifiedCraftingItem> CraftingItems => craftingItems.Select(x => x);
         public IEnumerable<string> ValidItemNames => validCraftingItems.Select(x => x.Name);
+        public SpecifiedCraftingItem SelectedCraftingItem { get; set; }
 
         public MainWindow()
         {
@@ -63,31 +64,40 @@ namespace ffxiv_crafter
             if (itemCount <= 0)
                 itemCount = 1;
 
-            var foundCraftingItem = validCraftingItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x, itemName));
+            var foundCraftingItem = validCraftingItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, itemName));
 
             if (foundCraftingItem == null)
             {
                 if (MessageBox.Show("This crafting item hasn't been defined yet. Do you want to define it now?", "Create new crafting item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
                     return;
 
-                var childWindow = new AddEditCraftingItemWindow();
+                var childWindow = new AddEditCraftingItemWindow(materialItems, validCraftingItems, itemName);
 
                 childWindow.Owner = this;
 
                 if (childWindow.ShowDialog() ?? false)
                 {
+                    var craftingItem = new CraftingItem
+                    {
+                        Name = childWindow.ItemName,
+                        SourceType = childWindow.SourceType
+                    };
 
+                    craftingItem.SetMaterials(childWindow.MaterialsList);
+
+                    foundCraftingItem = craftingItem;
                 }
+                else
+                    return;
             }
-            else
-            {
-                CraftingItems.Add(new SpecifiedCraftingItem { Item = foundCraftingItem, Count = itemCount });
 
-                txtAddItemName.Text = "";
-                txtAddItemCount.Text = "";
+            craftingItems.Add(new SpecifiedCraftingItem { Item = foundCraftingItem, Count = itemCount });
 
-                ResizeGridViewColumn(gvcItemName);
-            }
+            txtAddItemName.Text = "";
+            txtAddItemCount.Text = "";
+
+            Notify("CraftingItems");
+            ResizeGridViewColumn(gvcItemName);
 
             txtAddItemName.Focus();
         }
@@ -111,6 +121,37 @@ namespace ffxiv_crafter
             if (childWindow.ShowDialog() ?? false)
             {
                 materialItems = childWindow.MaterialItems.ToList();
+            }
+        }
+
+        private void DeleteItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedCraftingItem == null)
+                return;
+
+            craftingItems.Remove(SelectedCraftingItem);
+
+            Notify("CraftingItems");
+            ResizeGridViewColumn(gvcItemName);
+        }
+
+        private void EditItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedCraftingItem == null)
+                return;
+
+            var childWindow = new AddEditCraftingItemWindow(materialItems, validCraftingItems, null, SelectedCraftingItem.Item);
+
+            childWindow.Owner = this;
+
+            if (childWindow.ShowDialog() ?? false)
+            {
+                SelectedCraftingItem.Item.Name = childWindow.ItemName;
+                SelectedCraftingItem.Item.SourceType = childWindow.SourceType;
+                SelectedCraftingItem.Item.SetMaterials(childWindow.MaterialsList);
+
+                Notify("CraftingItems");
+                ResizeGridViewColumn(gvcItemName);
             }
         }
     }

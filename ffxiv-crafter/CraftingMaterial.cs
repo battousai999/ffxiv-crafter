@@ -16,7 +16,7 @@ namespace ffxiv_crafter
             get => sourceType;
             set
             {
-                if (value != SourceType.None && value != SourceType.Botany && value != SourceType.Mining)
+                if (value != SourceType.None && value != SourceType.Botany && value != SourceType.Mining && value != SourceType.Fishing)
                 {
                     throw new InvalidOperationException("Regular crafting materials cannot be sourced from a crafting profession—use the CraftingItem class instead.");
                 }

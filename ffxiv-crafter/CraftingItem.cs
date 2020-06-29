@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ffxiv_crafter
@@ -31,6 +32,11 @@ namespace ffxiv_crafter
             }
         }
 
-        public List<SpecifiedCraftingMaterial> Materials { get; } = new List<SpecifiedCraftingMaterial>();
+        public List<SpecifiedCraftingMaterial> Materials { get; private set; } = new List<SpecifiedCraftingMaterial>();
+
+        public void SetMaterials(IEnumerable<SpecifiedCraftingMaterial> materials)
+        {
+            Materials = materials.ToList();
+        }
     }
 }

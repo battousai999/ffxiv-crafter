@@ -57,6 +57,7 @@ namespace ffxiv_crafter
             InitializeComponent();
 
             cbxSourceType.ItemsSource = SourceTypes;
+            txtMaterialName.Focus();
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
