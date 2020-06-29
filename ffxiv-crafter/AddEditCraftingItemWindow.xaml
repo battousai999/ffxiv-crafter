@@ -1,0 +1,74 @@
+﻿<Window x:Class="ffxiv_crafter.AddEditCraftingItemWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:behaviors="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
+        xmlns:local="clr-namespace:ffxiv_crafter"
+        mc:Ignorable="d"
+        Title="Edit Crafting Item" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Name:" />
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Path=ItemName}" />
+
+        <Label Grid.Row="1" Grid.Column="0" Content="Source:" Margin="0 10 0 0" />
+        <ComboBox Name="cbxSourceType" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Path=SourceTypes}" DisplayMemberPath="Name" SelectedItem="{Binding Path=SelectedSourceType, Mode=TwoWay}" Margin="0 10 0 0" />
+
+        <ListView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Width="400" Height="120" ItemsSource="{Binding Path=MaterialsList}" SelectedItem="{Binding Path=SelectedMaterial}" Margin="0 10 0 0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn x:Name="gvcMaterialName" Header="Name" DisplayMemberBinding="{Binding Path=Name}" />
+                    <GridViewColumn x:Name="gvcMaterialCount" Header="Count" DisplayMemberBinding="{Binding Path=Count}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 10 0 0">
+            <Button Content="Edit" MinWidth="75" Margin="0 0 10 0" />
+            <Button Content="Delete" MinWidth="75" />
+        </StackPanel>
+
+        <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Item To Add" TextDecorations="Underline" />
+
+            <Label Grid.Row="1" Grid.Column="0" Content="Name" />
+            <TextBox Grid.Row="2" Grid.Column="0" Name="txtAddItemName" Margin="0 0 10 0" 
+                     behaviors:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding ValidItemNames}"
+                     behaviors:AutoCompleteBehavior.AutoCompleteStringComparison="CurrentCultureIgnoreCase"/>
+
+            <Label Grid.Row="1" Grid.Column="1" Content="#" />
+            <TextBox Grid.Row="2" Grid.Column="1" Name="txtAddItemCount" MinWidth="50" Margin="0 0 10 0" Text="" />
+
+            <Button Grid.Row="2" Grid.Column="2" Content="+" MinWidth="30" Click="AddItem_Click" />
+       </Grid>
+
+        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 20 0 0">
+            <Button Content="OK" MinWidth="75" IsDefault="True" Margin="0 0 10 0" />
+            <Button Content="Cancel" MinWidth="75" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>
