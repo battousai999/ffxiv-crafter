@@ -61,6 +61,8 @@ namespace ffxiv_crafter
 
             InitializeComponent();
 
+            SetResourceReference(BackgroundProperty, SystemColors.ControlBrushKey);
+
             cbxSourceType.ItemsSource = SourceTypes;
             txtMaterialName.Focus();
         }

@@ -22,6 +22,8 @@ namespace ffxiv_crafter
         {
             InitializeComponent();
 
+            SetResourceReference(BackgroundProperty, SystemColors.ControlBrushKey);
+
             var results = GenerateResults(itemsToBuild);
 
             flowDocument.Blocks.Add(results);

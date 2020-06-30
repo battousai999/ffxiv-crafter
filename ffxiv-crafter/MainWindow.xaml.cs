@@ -39,6 +39,8 @@ namespace ffxiv_crafter
             DataContext = this;
 
             InitializeComponent();
+
+            SetResourceReference(BackgroundProperty, SystemColors.ControlBrushKey);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

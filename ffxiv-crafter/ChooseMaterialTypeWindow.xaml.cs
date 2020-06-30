@@ -29,6 +29,8 @@ namespace ffxiv_crafter
         {
             InitializeComponent();
 
+            SetResourceReference(BackgroundProperty, SystemColors.ControlBrushKey);
+
             this.KeyUp += ChooseMaterialTypeWindow_KeyUp;
         }
 
