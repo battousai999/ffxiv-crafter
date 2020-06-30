@@ -71,7 +71,12 @@ namespace ffxiv_crafter
                 if (MessageBox.Show("This crafting item hasn't been defined yet. Do you want to define it now?", "Create new crafting item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
                     return;
 
-                var childWindow = new AddEditCraftingItemWindow(materialItems, validCraftingItems, itemName);
+                var childWindow = new AddEditCraftingItemWindow(
+                    materialItems,
+                    validCraftingItems,
+                    item => materialItems.Add(item),
+                    item => { validCraftingItems.Add(item); Notify("ValidItemNames"); },
+                    itemName);
 
                 childWindow.Owner = this;
 
@@ -91,25 +96,20 @@ namespace ffxiv_crafter
                     return;
             }
 
-            craftingItems.Add(new SpecifiedCraftingItem { Item = foundCraftingItem, Count = itemCount });
+            var foundSpecifiedItem = craftingItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, foundCraftingItem.Name));
+
+            if (foundSpecifiedItem == null)
+                craftingItems.Add(new SpecifiedCraftingItem { Item = foundCraftingItem, Count = itemCount });
+            else
+                foundSpecifiedItem.Count += 1;
 
             txtAddItemName.Text = "";
             txtAddItemCount.Text = "";
 
             Notify("CraftingItems");
-            ResizeGridViewColumn(gvcItemName);
+            Utils.ResizeGridViewColumn(gvcItemName);
 
             txtAddItemName.Focus();
-        }
-
-        private void ResizeGridViewColumn(GridViewColumn column)
-        {
-            if (double.IsNaN(column.Width))
-            {
-                column.Width = column.ActualWidth;
-            }
-
-            column.Width = double.NaN;
         }
 
         private void ConfigureItems_Click(object sender, RoutedEventArgs e)
@@ -132,7 +132,7 @@ namespace ffxiv_crafter
             craftingItems.Remove(SelectedCraftingItem);
 
             Notify("CraftingItems");
-            ResizeGridViewColumn(gvcItemName);
+            Utils.ResizeGridViewColumn(gvcItemName);
         }
 
         private void EditItem_Click(object sender, RoutedEventArgs e)
@@ -140,7 +140,13 @@ namespace ffxiv_crafter
             if (SelectedCraftingItem == null)
                 return;
 
-            var childWindow = new AddEditCraftingItemWindow(materialItems, validCraftingItems, null, SelectedCraftingItem.Item);
+            var childWindow = new AddEditCraftingItemWindow(
+                materialItems, 
+                validCraftingItems,
+                item => materialItems.Add(item),
+                item => { validCraftingItems.Add(item); Notify("ValidItemNames"); },
+                null, 
+                SelectedCraftingItem.Item);
 
             childWindow.Owner = this;
 
@@ -151,7 +157,7 @@ namespace ffxiv_crafter
                 SelectedCraftingItem.Item.SetMaterials(childWindow.MaterialsList);
 
                 Notify("CraftingItems");
-                ResizeGridViewColumn(gvcItemName);
+                Utils.ResizeGridViewColumn(gvcItemName);
             }
         }
     }

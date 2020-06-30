@@ -41,21 +41,11 @@ namespace ffxiv_crafter
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void ResizeGridViewColumn(GridViewColumn column)
-        {
-            if (double.IsNaN(column.Width))
-            {
-                column.Width = column.ActualWidth;
-            }
-
-            column.Width = double.NaN;
-        }
-
         private void ResizeGridViewColumns()
         {
-            ResizeGridViewColumn(gvcMaterialName);
-            ResizeGridViewColumn(gvcMaterialSourceType);
-            ResizeGridViewColumn(gvcMaterialLocation);
+            Utils.ResizeGridViewColumn(gvcMaterialName);
+            Utils.ResizeGridViewColumn(gvcMaterialSourceType);
+            Utils.ResizeGridViewColumn(gvcMaterialLocation);
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)

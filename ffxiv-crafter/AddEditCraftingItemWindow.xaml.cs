@@ -41,6 +41,8 @@ namespace ffxiv_crafter
         private List<CraftingMaterial> definedMaterialItems = new List<CraftingMaterial>();
         private List<CraftingItem> definedCraftingItems = new List<CraftingItem>();
         private List<SpecifiedCraftingMaterial> materialsList = new List<SpecifiedCraftingMaterial>();
+        private Action<CraftingMaterial> registerNewCraftingMaterial;
+        private Action<CraftingItem> registerNewCraftingItem;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -55,7 +57,13 @@ namespace ffxiv_crafter
         public IEnumerable<SpecifiedCraftingMaterial> MaterialsList => materialsList.Select(x => x);
         public SpecifiedCraftingMaterial SelectedMaterial;
 
-        public AddEditCraftingItemWindow(IEnumerable<CraftingMaterial> definedCraftingMaterials, IEnumerable<CraftingItem> definedCraftingItems, string suggestedItemName, CraftingItem editItem = null)
+        public AddEditCraftingItemWindow(
+            IEnumerable<CraftingMaterial> definedCraftingMaterials, 
+            IEnumerable<CraftingItem> definedCraftingItems, 
+            Action<CraftingMaterial> registerNewCraftingMaterial, 
+            Action<CraftingItem> registerNewCraftingItem,
+            string suggestedItemName, 
+            CraftingItem editItem = null)
         {
             if (editItem == null)
             {
@@ -72,6 +80,8 @@ namespace ffxiv_crafter
 
             this.definedMaterialItems = definedCraftingMaterials.ToList();
             this.definedCraftingItems = definedCraftingItems.ToList();
+            this.registerNewCraftingItem = registerNewCraftingItem;
+            this.registerNewCraftingMaterial = registerNewCraftingMaterial;
 
             DataContext = this;
 
@@ -88,7 +98,95 @@ namespace ffxiv_crafter
 
         public void AddItem_Click(object sender, RoutedEventArgs e)
         {
+            var itemName = txtAddItemName.Text;
+            var itemCountStr = txtAddItemCount.Text;
 
+            if (String.IsNullOrWhiteSpace(itemName))
+            {
+                MessageBox.Show("Cannot add item with no given name.");
+                return;
+            }
+
+            if (String.IsNullOrWhiteSpace(itemCountStr) || !Int32.TryParse(itemCountStr, out var itemCount))
+                itemCount = 1;
+
+            if (itemCount <= 0)
+                itemCount = 1;
+
+            ICraftingMaterial foundCraftingMaterial = definedCraftingItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, itemName));
+
+            if (foundCraftingMaterial == null)
+                foundCraftingMaterial = definedMaterialItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, itemName));
+
+            if (foundCraftingMaterial == null)
+            {
+                if (MessageBox.Show("This material item hasn't been defined yet. Do you want to define it now?", "Create new material item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
+                    return;
+
+                var choiceWindow = new ChooseMaterialTypeWindow();
+
+                choiceWindow.Owner = this;
+
+                if (!(choiceWindow.ShowDialog() ?? false))
+                    return;
+
+                if (choiceWindow.MaterialType == ChooseMaterialTypeWindow.MaterialTypeChoice.CraftingItem)
+                {
+                    var childWindow = new AddEditCraftingItemWindow(definedMaterialItems, definedCraftingItems, registerNewCraftingMaterial, registerNewCraftingItem, itemName);
+
+                    childWindow.Owner = this;
+
+                    if (!(childWindow.ShowDialog() ?? false))
+                        return;
+
+                    foundCraftingMaterial = new CraftingItem
+                    {
+                        Name = childWindow.ItemName,
+                        SourceType = childWindow.SourceType
+                    };
+
+                    ((CraftingItem)foundCraftingMaterial).SetMaterials(childWindow.MaterialsList.ToList());
+
+                    definedCraftingItems.Add((CraftingItem)foundCraftingMaterial);
+                    registerNewCraftingItem((CraftingItem)foundCraftingMaterial);
+                    Notify("ValidItemNames");
+                }
+                else
+                {
+                    var childWindow = new AddEditCraftingMaterialWindow();
+
+                    childWindow.Owner = this;
+
+                    if (!(childWindow.ShowDialog() ?? false))
+                        return;
+
+                    foundCraftingMaterial = new CraftingMaterial
+                    {
+                        Name = childWindow.MaterialName,
+                        SourceType = childWindow.SourceType,
+                        Location = childWindow.Location
+                    };
+
+                    definedMaterialItems.Add((CraftingMaterial)foundCraftingMaterial);
+                    registerNewCraftingMaterial((CraftingMaterial)foundCraftingMaterial);
+                    Notify("ValidItemNames");
+                }
+            }
+
+            var foundSpecifiedMaterial = materialsList.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, foundCraftingMaterial.Name));
+
+            if (foundSpecifiedMaterial == null)
+                materialsList.Add(new SpecifiedCraftingMaterial { Material = foundCraftingMaterial, Count = itemCount });
+            else
+                foundSpecifiedMaterial.Count += 1;
+
+            txtAddItemName.Text = "";
+            txtAddItemCount.Text = "";
+
+            Notify("MaterialsList");
+            Utils.ResizeGridViewColumn(gvcMaterialName);
+
+            txtAddItemName.Focus();
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
