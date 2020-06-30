@@ -14,6 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using ffxiv_crafter.Serialization;
+using System.IO;
 
 namespace ffxiv_crafter
 {
@@ -186,6 +190,42 @@ namespace ffxiv_crafter
             childWindow.Owner = this;
 
             childWindow.ShowDialog();
+        }
+
+        private void Load_Click(object sender, RoutedEventArgs e)
+        {
+            var openDialog = new OpenFileDialog();
+
+            openDialog.Filter = "Save-Data file(*.json)|*.json|All Files (*.*)|*.*";
+            openDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            if (!(openDialog.ShowDialog() ?? false))
+                return;
+
+            var fileData = File.ReadAllText(openDialog.FileName);
+            var data = SaveDataJsonAdapter.FromJson(fileData);
+
+            validCraftingItems = data.DefinedCraftingItems;
+            materialItems = data.DefinedCraftingMaterials;
+            craftingItems = data.CraftingItems;
+
+            Notify("ValidItemNames");
+            Notify("CraftingItems");
+        }
+
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            var saveDialog = new SaveFileDialog();
+
+            saveDialog.Filter = "Save-Data file(*.json)|*.json|All Files (*.*)|*.*";
+            saveDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            if (!(saveDialog.ShowDialog() ?? false))
+                return;
+
+            var data = SaveDataJsonAdapter.ToJson(validCraftingItems, materialItems, craftingItems);
+
+            File.WriteAllText(saveDialog.FileName, data);
         }
     }
 }

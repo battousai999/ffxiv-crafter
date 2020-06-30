@@ -200,7 +200,7 @@ namespace ffxiv_crafter
 
         private void Ok_Click(object sender, RoutedEventArgs e)
         {
-            if (isEditing && definedCraftingItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, ItemName)))
+            if (!isEditing && definedCraftingItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, ItemName)))
             {
                 MessageBox.Show($"There is already a crafting item called '{ItemName}'.");
                 return;

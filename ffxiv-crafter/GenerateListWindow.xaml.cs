@@ -80,15 +80,22 @@ namespace ffxiv_crafter
                 return row;
             };
 
-            foreach (var group in groupedMaterials)
+            var sortedGroups = groupedMaterials.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var group in sortedGroups)
             {
                 var groupName = String.IsNullOrWhiteSpace(group.Key) ? "No Location" : group.Key;
 
-                tableRowGroup.Rows.Add(createGroupHeader($"[{groupName}]"));
+                tableRowGroup.Rows.Add(createGroupHeader($"{groupName}"));
 
-                foreach (var material in group)
+                var sortedItems = group
+                    .OrderBy(x => x.Material.SourceType.ToString(), StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+                foreach (var material in sortedItems)
                 {
-                    tableRowGroup.Rows.Add(createRow(material.Name, material.Count));
+                    var annotation = material.Material.SourceType == SourceType.None ? "" : $" ({material.Material.SourceType})";
+                    tableRowGroup.Rows.Add(createRow($"{material.Name}{annotation}", material.Count));
                 }
 
                 tableRowGroup.Rows.Add(createBlankRow());

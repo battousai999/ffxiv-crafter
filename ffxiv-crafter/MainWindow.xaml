@@ -69,8 +69,8 @@
 
             <StackPanel Grid.Column="0" Orientation="Horizontal">
                 <Button Content="Configure Items" MinWidth="105" Margin="0 0 10 0" Click="ConfigureItems_Click" />
-                <Button Content="Load" MinWidth="75" Margin="0 0 10 0" />
-                <Button Content="Save" MinWidth="75" />
+                <Button Content="Load" MinWidth="75" Margin="0 0 10 0" Click="Load_Click" />
+                <Button Content="Save" MinWidth="75" Click="Save_Click" />
             </StackPanel>
 
             <Button Grid.Column="1" Content="Generate List" MinWidth="95" Click="GenerateList_Click" />
