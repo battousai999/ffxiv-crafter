@@ -55,7 +55,7 @@ namespace ffxiv_crafter
         public SourceType SourceType => SelectedSourceType?.Value ?? SourceType.Alchemy;
         public SourceTypeItem SelectedSourceType { get; set; }
         public IEnumerable<SpecifiedCraftingMaterial> MaterialsList => materialsList.Select(x => x);
-        public SpecifiedCraftingMaterial SelectedMaterial;
+        public SpecifiedCraftingMaterial SelectedMaterial { get; set; }
 
         public AddEditCraftingItemWindow(
             IEnumerable<CraftingMaterial> definedCraftingMaterials, 
@@ -153,7 +153,7 @@ namespace ffxiv_crafter
                 }
                 else
                 {
-                    var childWindow = new AddEditCraftingMaterialWindow();
+                    var childWindow = new AddEditCraftingMaterialWindow(itemName);
 
                     childWindow.Owner = this;
 
@@ -205,6 +205,31 @@ namespace ffxiv_crafter
 
             DialogResult = true;
             Close();
+        }
+
+        private void EditMaterial_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedMaterial == null)
+                return;
+
+            var childWindow = new EditCountWindow(SelectedMaterial.Count);
+
+            childWindow.Owner = this;
+
+            if (!(childWindow.ShowDialog() ?? false))
+                return;
+
+            SelectedMaterial.Count = childWindow.CountValue;
+            Notify("MaterialsList");
+        }
+
+        private void DeleteMaterial_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedMaterial == null)
+                return;
+
+            materialsList.Remove(SelectedMaterial);
+            Notify("MaterialsList");
         }
     }
 }

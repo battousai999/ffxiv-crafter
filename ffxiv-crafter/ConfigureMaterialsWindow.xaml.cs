@@ -81,7 +81,7 @@ namespace ffxiv_crafter
             if (SelectedMaterialItem == null)
                 return;
 
-            var childWindow = new AddEditCraftingMaterialWindow(SelectedMaterialItem);
+            var childWindow = new AddEditCraftingMaterialWindow(null, SelectedMaterialItem);
 
             childWindow.Owner = this;
 

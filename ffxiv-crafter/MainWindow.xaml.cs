@@ -34,9 +34,6 @@ namespace ffxiv_crafter
         {
             DataContext = this;
 
-            validCraftingItems.Add(new CraftingItem { Name = "Crossbow", SourceType = SourceType.Woodworking });
-            validCraftingItems.Add(new CraftingItem { Name = "Iron sword", SourceType = SourceType.Blacksmith });
-
             InitializeComponent();
         }
 
@@ -90,6 +87,7 @@ namespace ffxiv_crafter
 
                     craftingItem.SetMaterials(childWindow.MaterialsList);
 
+                    validCraftingItems.Add(craftingItem);
                     foundCraftingItem = craftingItem;
                 }
                 else
@@ -120,7 +118,10 @@ namespace ffxiv_crafter
 
             if (childWindow.ShowDialog() ?? false)
             {
+                var deletedItems = materialItems.Except(childWindow.MaterialItems).ToList();
                 materialItems = childWindow.MaterialItems.ToList();
+
+                validCraftingItems.ForEach(x => x.DeleteMaterials(deletedItems));
             }
         }
 
@@ -159,6 +160,28 @@ namespace ffxiv_crafter
                 Notify("CraftingItems");
                 Utils.ResizeGridViewColumn(gvcItemName);
             }
+        }
+
+        private void EditCount_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedCraftingItem == null)
+                return;
+
+            var childWindow = new EditCountWindow(SelectedCraftingItem.Count);
+
+            childWindow.Owner = this;
+
+            if (!(childWindow.ShowDialog() ?? false))
+                return;
+
+            SelectedCraftingItem.Count = childWindow.CountValue;
+
+            Notify("CraftingItems");
+        }
+
+        private void GenerateList_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

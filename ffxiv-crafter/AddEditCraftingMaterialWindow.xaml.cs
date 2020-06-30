@@ -38,10 +38,11 @@ namespace ffxiv_crafter
         public SourceType SourceType => SelectedSourceType?.Value ?? SourceType.None;
         public string Location { get; set; }
 
-        public AddEditCraftingMaterialWindow(CraftingMaterial editMaterial = null)
+        public AddEditCraftingMaterialWindow(string suggestedName = null, CraftingMaterial editMaterial = null)
         {
             if (editMaterial == null)
             {
+                MaterialName = suggestedName ?? "";
                 Title = "New Crafting Material";
                 SelectedSourceType = SourceTypes.First();
             }

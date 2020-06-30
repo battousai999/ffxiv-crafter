@@ -38,5 +38,11 @@ namespace ffxiv_crafter
         {
             Materials = materials.ToList();
         }
+
+        internal void DeleteMaterials(List<CraftingMaterial> itemsToDelete)
+        {
+            Materials.RemoveAll(x => itemsToDelete.Any(y => StringComparer.OrdinalIgnoreCase.Equals(y.Name, x.Name)));
+            Materials.OfType<CraftingItem>().ToList().ForEach(x => x.DeleteMaterials(itemsToDelete));
+        }
     }
 }

@@ -28,6 +28,20 @@ namespace ffxiv_crafter
         public ChooseMaterialTypeWindow()
         {
             InitializeComponent();
+
+            this.KeyUp += ChooseMaterialTypeWindow_KeyUp;
+        }
+
+        private void ChooseMaterialTypeWindow_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.M)
+            {
+                CraftingMaterial_Click(this, new RoutedEventArgs());
+            }
+            else if (e.Key == Key.I)
+            {
+                CraftingItem_Click(this, new RoutedEventArgs());
+            }
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
