@@ -44,5 +44,13 @@ namespace ffxiv_crafter
             Materials.RemoveAll(x => itemsToDelete.Any(y => StringComparer.OrdinalIgnoreCase.Equals(y.Name, x.Name)));
             Materials.OfType<CraftingItem>().ToList().ForEach(x => x.DeleteMaterials(itemsToDelete));
         }
+
+        public IEnumerable<SpecifiedCraftingMaterial> GetAllMaterials()
+        {
+            var allMaterials = Materials.SelectMany(x => x.GetAllMaterials());
+            var dedupedMaterials = allMaterials.GroupBy(x => x.Name, (key, materials) => new SpecifiedCraftingMaterial { Material = materials.First().Material, Count = materials.Sum(x => x.Count) });
+
+            return dedupedMaterials;
+        }
     }
 }

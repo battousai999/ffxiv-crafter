@@ -16,5 +16,15 @@ namespace ffxiv_crafter
 
             column.Width = double.NaN;
         }
+
+        public static IEnumerable<T> ToSingleton<T>(this T item)
+        {
+            yield return item;
+        }
+
+        public static IEnumerable<SpecifiedCraftingMaterial> GetAllMaterials(this IEnumerable<SpecifiedCraftingItem> items)
+        {
+            return SpecifiedCraftingItem.GetMaterialsFor(items);
+        }
     }
 }

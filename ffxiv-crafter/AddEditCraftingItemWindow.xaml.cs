@@ -43,6 +43,7 @@ namespace ffxiv_crafter
         private List<SpecifiedCraftingMaterial> materialsList = new List<SpecifiedCraftingMaterial>();
         private Action<CraftingMaterial> registerNewCraftingMaterial;
         private Action<CraftingItem> registerNewCraftingItem;
+        private bool isEditing;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -67,12 +68,14 @@ namespace ffxiv_crafter
         {
             if (editItem == null)
             {
+                isEditing = false;
                 Title = "New Crafting Item";
                 ItemName = suggestedItemName;
                 SelectedSourceType = SourceTypes.First();
             }
             else
             {
+                isEditing = true;
                 ItemName = editItem.Name;
                 SelectedSourceType = SourceTypes.FirstOrDefault(x => x.Value == editItem.SourceType) ?? SourceTypes.First();
                 materialsList = editItem.Materials.ToList();
@@ -153,7 +156,7 @@ namespace ffxiv_crafter
                 }
                 else
                 {
-                    var childWindow = new AddEditCraftingMaterialWindow(itemName);
+                    var childWindow = new AddEditCraftingMaterialWindow(itemName, null, name => definedMaterialItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, name)));
 
                     childWindow.Owner = this;
 
@@ -197,7 +200,7 @@ namespace ffxiv_crafter
 
         private void Ok_Click(object sender, RoutedEventArgs e)
         {
-            if (definedCraftingItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, ItemName)))
+            if (isEditing && definedCraftingItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, ItemName)))
             {
                 MessageBox.Show($"There is already a crafting item called '{ItemName}'.");
                 return;

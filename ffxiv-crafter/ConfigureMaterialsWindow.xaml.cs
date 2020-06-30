@@ -56,7 +56,7 @@ namespace ffxiv_crafter
 
         private void NewItem_Click(object sender, RoutedEventArgs e)
         {
-            var childWindow = new AddEditCraftingMaterialWindow();
+            var childWindow = new AddEditCraftingMaterialWindow(null, null, name => materialItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, name)));
 
             childWindow.Owner = this;
 

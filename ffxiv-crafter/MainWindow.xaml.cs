@@ -181,7 +181,11 @@ namespace ffxiv_crafter
 
         private void GenerateList_Click(object sender, RoutedEventArgs e)
         {
+            var childWindow = new GenerateListWindow(craftingItems);
 
+            childWindow.Owner = this;
+
+            childWindow.ShowDialog();
         }
     }
 }

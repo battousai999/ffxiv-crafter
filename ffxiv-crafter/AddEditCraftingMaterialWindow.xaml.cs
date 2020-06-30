@@ -25,6 +25,8 @@ namespace ffxiv_crafter
             public SourceType Value { get; set; }
         }
 
+        private Func<string, bool> nameAlreadyExists;
+
         public List<SourceTypeItem> SourceTypes = new List<SourceTypeItem>
         {
             new SourceTypeItem { Name = "Drop", Value = SourceType.None },
@@ -38,7 +40,7 @@ namespace ffxiv_crafter
         public SourceType SourceType => SelectedSourceType?.Value ?? SourceType.None;
         public string Location { get; set; }
 
-        public AddEditCraftingMaterialWindow(string suggestedName = null, CraftingMaterial editMaterial = null)
+        public AddEditCraftingMaterialWindow(string suggestedName = null, CraftingMaterial editMaterial = null, Func<string, bool> nameAlreadyExists = null)
         {
             if (editMaterial == null)
             {
@@ -52,6 +54,8 @@ namespace ffxiv_crafter
                 SelectedSourceType = SourceTypes.FirstOrDefault(x => x.Value == editMaterial.SourceType) ?? SourceTypes.First();
                 Location = editMaterial.Location;
             }
+
+            this.nameAlreadyExists = (nameAlreadyExists ?? (_ => false));
 
             DataContext = this;
 
@@ -72,6 +76,12 @@ namespace ffxiv_crafter
             if (String.IsNullOrWhiteSpace(MaterialName))
             {
                 MessageBox.Show("Cannot save material name with no name.");
+                return;
+            }
+
+            if (nameAlreadyExists(MaterialName))
+            {
+                MessageBox.Show($"There is already a crafting item called '{MaterialName}'.");
                 return;
             }
 
