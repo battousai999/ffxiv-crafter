@@ -69,7 +69,6 @@ namespace ffxiv_crafter
             if (editItem == null)
             {
                 isEditing = false;
-                Title = "New Crafting Item";
                 ItemName = suggestedItemName;
                 SelectedSourceType = SourceTypes.First();
             }
@@ -93,7 +92,11 @@ namespace ffxiv_crafter
             SetResourceReference(BackgroundProperty, SystemColors.ControlBrushKey);
 
             cbxSourceType.ItemsSource = SourceTypes;
-            txtItemName.Focus();
+
+            if (!isEditing)
+                Title = "New Crafting Item";
+
+            txtAddItemName.Focus();
         }
 
         private void Notify(string propertyName)
@@ -125,8 +128,8 @@ namespace ffxiv_crafter
 
             if (foundCraftingMaterial == null)
             {
-                if (MessageBox.Show("This material item hasn't been defined yet. Do you want to define it now?", "Create new material item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
-                    return;
+                //if (MessageBox.Show("This material item hasn't been defined yet. Do you want to define it now?", "Create new material item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
+                //    return;
 
                 var choiceWindow = new ChooseMaterialTypeWindow();
 
@@ -137,7 +140,22 @@ namespace ffxiv_crafter
 
                 if (choiceWindow.MaterialType == ChooseMaterialTypeWindow.MaterialTypeChoice.CraftingItem)
                 {
-                    var childWindow = new AddEditCraftingItemWindow(definedMaterialItems, definedCraftingItems, registerNewCraftingMaterial, registerNewCraftingItem, itemName);
+                    var childWindow = new AddEditCraftingItemWindow(
+                        definedMaterialItems, 
+                        definedCraftingItems, 
+                        x =>
+                        {
+                            registerNewCraftingMaterial(x);
+                            definedMaterialItems.Add((CraftingMaterial)x);
+                            Notify("ValidItemNames");
+                        }, 
+                        x =>
+                        {
+                            registerNewCraftingItem(x);
+                            definedCraftingItems.Add((CraftingItem)x);
+                            Notify("ValidItemNames");
+                        }, 
+                        itemName);
 
                     childWindow.Owner = this;
 

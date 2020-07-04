@@ -71,8 +71,8 @@ namespace ffxiv_crafter
 
             if (foundCraftingItem == null)
             {
-                if (MessageBox.Show("This crafting item hasn't been defined yet. Do you want to define it now?", "Create new crafting item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
-                    return;
+                //if (MessageBox.Show("This crafting item hasn't been defined yet. Do you want to define it now?", "Create new crafting item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
+                //    return;
 
                 var childWindow = new AddEditCraftingItemWindow(
                     materialItems,

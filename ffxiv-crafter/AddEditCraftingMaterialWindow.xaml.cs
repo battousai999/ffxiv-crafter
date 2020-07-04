@@ -45,7 +45,6 @@ namespace ffxiv_crafter
             if (editMaterial == null)
             {
                 MaterialName = suggestedName ?? "";
-                Title = "New Crafting Material";
                 SelectedSourceType = SourceTypes.First();
             }
             else
@@ -62,6 +61,9 @@ namespace ffxiv_crafter
             InitializeComponent();
 
             SetResourceReference(BackgroundProperty, SystemColors.ControlBrushKey);
+
+            if (editMaterial == null)
+                Title = "New Crafting Material";
 
             cbxSourceType.ItemsSource = SourceTypes;
             txtMaterialName.Focus();
@@ -87,11 +89,11 @@ namespace ffxiv_crafter
                 return;
             }
 
-            if (String.IsNullOrWhiteSpace(Location))
-            {
-                if (MessageBox.Show("Are you sure that you want to leave the location empty?", "Location empty", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.No)
-                    return;
-            }
+            //if (String.IsNullOrWhiteSpace(Location))
+            //{
+            //    if (MessageBox.Show("Are you sure that you want to leave the location empty?", "Location empty", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.No)
+            //        return;
+            //}
 
             DialogResult = true;
             Close();
