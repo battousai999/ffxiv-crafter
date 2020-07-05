@@ -18,6 +18,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using ffxiv_crafter.Serialization;
 using System.IO;
+using ffxiv_crafter.Models;
 
 namespace ffxiv_crafter
 {

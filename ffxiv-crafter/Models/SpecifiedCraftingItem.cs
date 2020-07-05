@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text;
 
-namespace ffxiv_crafter
+namespace ffxiv_crafter.Models
 {
     public class SpecifiedCraftingItem
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ffxiv_crafter.Models;
 
 namespace ffxiv_crafter.Serialization
 {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -14,9 +15,22 @@ namespace ffxiv_crafter
     /// </summary>
     public partial class App : Application
     {
+        private readonly ServiceProvider _serviceProvider;
+
         public App()
         {
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
+
+            var serviceCollection = new ServiceCollection();
+
+            ConfigureServices(serviceCollection);
+
+            _serviceProvider = serviceCollection.BuildServiceProvider();
+        }
+
+        private void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<MainWindow>();
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
@@ -32,6 +46,13 @@ namespace ffxiv_crafter
             {
                 MessageBox.Show($"Caught exception attempting to log/show unhandled exception: <{ex.GetType().Name}> {ex.Message}");
             }
+        }
+
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            var mainWindow = _serviceProvider.GetService<MainWindow>();
+
+            mainWindow.Show();
         }
     }
 }

@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Security.Policy;
 using System.ComponentModel;
+using ffxiv_crafter.Models;
 
 namespace ffxiv_crafter
 {

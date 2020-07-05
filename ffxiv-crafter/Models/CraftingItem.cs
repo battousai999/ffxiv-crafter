@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ffxiv_crafter
+namespace ffxiv_crafter.Models
 {
     public class CraftingItem : ICraftingMaterial
     {

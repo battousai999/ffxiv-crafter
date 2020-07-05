@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using ffxiv_crafter.Models;
 
 namespace ffxiv_crafter.Serialization
 {

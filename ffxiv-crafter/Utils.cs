@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Controls;
+using ffxiv_crafter.Models;
 
 namespace ffxiv_crafter
 {
