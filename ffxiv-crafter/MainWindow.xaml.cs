@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using ffxiv_crafter.Serialization;
 using System.IO;
 using ffxiv_crafter.Models;
+using ffxiv_crafter.Services;
 
 namespace ffxiv_crafter
 {
@@ -27,16 +28,47 @@ namespace ffxiv_crafter
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private List<CraftingItem> validCraftingItems = new List<CraftingItem>();
-        private List<CraftingMaterial> materialItems = new List<CraftingMaterial>();
+        private List<CraftingItem> validCraftingItems;
+        private List<CraftingMaterial> materialItems;
         private List<SpecifiedCraftingItem> craftingItems = new List<SpecifiedCraftingItem>();
+        private readonly IChildWindowProvider childWindowProvider;
+        private readonly IFileSystemService fileSystemService;
+        private string itemName = "";
+        private string itemCount = "";
 
         public IEnumerable<SpecifiedCraftingItem> CraftingItems => craftingItems.Select(x => x);
         public IEnumerable<string> ValidItemNames => validCraftingItems.Select(x => x.Name);
+        public IEnumerable<string> MaterialItemNames => materialItems.Select(x => x.Name);
         public SpecifiedCraftingItem SelectedCraftingItem { get; set; }
 
-        public MainWindow()
+        public string ItemName 
         {
+            get => itemName;
+            set
+            {
+                itemName = value;
+                Notify("ItemName");
+            }
+        }
+
+        public string ItemCount 
+        { 
+            get => itemCount; 
+            set
+            {
+                itemCount = value;
+                Notify("ItemCount");
+            }
+        }
+
+        public MainWindow(IInitialDataService initialDataService, IChildWindowProvider childWindowProvider, IFileSystemService fileSystemService)
+        {
+            this.childWindowProvider = childWindowProvider;
+            this.fileSystemService = fileSystemService;
+
+            validCraftingItems = initialDataService.GetCraftingItems().ToList();
+            materialItems = initialDataService.GetCraftingMaterials().ToList();
+
             DataContext = this;
 
             InitializeComponent();
@@ -53,10 +85,9 @@ namespace ffxiv_crafter
 
         public void AddItem_Click(object sender, RoutedEventArgs e)
         {
-            var itemName = txtAddItemName.Text;
-            var itemCountStr = txtAddItemCount.Text;
+            var itemCountStr = ItemCount;
 
-            if (String.IsNullOrWhiteSpace(itemName))
+            if (String.IsNullOrWhiteSpace(ItemName))
             {
                 MessageBox.Show("Cannot add item with no given name.");
                 return;
@@ -68,37 +99,31 @@ namespace ffxiv_crafter
             if (itemCount <= 0)
                 itemCount = 1;
 
-            var foundCraftingItem = validCraftingItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, itemName));
+            var foundCraftingItem = validCraftingItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, ItemName));
 
             if (foundCraftingItem == null)
             {
-                //if (MessageBox.Show("This crafting item hasn't been defined yet. Do you want to define it now?", "Create new crafting item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
-                //    return;
-
-                var childWindow = new AddEditCraftingItemWindow(
+                var results = childWindowProvider.ShowAddEditCraftingItemWindow(
+                    this,
                     materialItems,
                     validCraftingItems,
                     item => materialItems.Add(item),
                     item => { validCraftingItems.Add(item); Notify("ValidItemNames"); },
-                    itemName);
+                    ItemName);
 
-                childWindow.Owner = this;
-
-                if (childWindow.ShowDialog() ?? false)
-                {
-                    var craftingItem = new CraftingItem
-                    {
-                        Name = childWindow.ItemName,
-                        SourceType = childWindow.SourceType
-                    };
-
-                    craftingItem.SetMaterials(childWindow.MaterialsList);
-
-                    validCraftingItems.Add(craftingItem);
-                    foundCraftingItem = craftingItem;
-                }
-                else
+                if (results == null)
                     return;
+
+                var craftingItem = new CraftingItem
+                {
+                    Name = results.Value.ItemName,
+                    SourceType = results.Value.SourceType
+                };
+
+                craftingItem.SetMaterials(results.Value.Materials);
+
+                validCraftingItems.Add(craftingItem);
+                foundCraftingItem = craftingItem;
             }
 
             var foundSpecifiedItem = craftingItems.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, foundCraftingItem.Name));
@@ -108,8 +133,8 @@ namespace ffxiv_crafter
             else
                 foundSpecifiedItem.Count += 1;
 
-            txtAddItemName.Text = "";
-            txtAddItemCount.Text = "";
+            ItemName = "";
+            ItemCount = "";
 
             Notify("CraftingItems");
             Utils.ResizeGridViewColumn(gvcItemName);
@@ -117,22 +142,20 @@ namespace ffxiv_crafter
             txtAddItemName.Focus();
         }
 
-        private void ConfigureItems_Click(object sender, RoutedEventArgs e)
+        public void ConfigureItems_Click(object sender, RoutedEventArgs e)
         {
-            var childWindow = new ConfigureMaterialsWindow(materialItems.ToList());
+            var results = childWindowProvider.ShowConfigureMaterialsWindow(this, materialItems.ToList());
 
-            childWindow.Owner = this;
+            if (results == null)
+                return;
 
-            if (childWindow.ShowDialog() ?? false)
-            {
-                var deletedItems = materialItems.Except(childWindow.MaterialItems).ToList();
-                materialItems = childWindow.MaterialItems.ToList();
+            var deletedItems = materialItems.Except(results).ToList();
+            materialItems = results.ToList();
 
-                validCraftingItems.ForEach(x => x.DeleteMaterials(deletedItems));
-            }
+            validCraftingItems.ForEach(x => x.DeleteMaterials(deletedItems));
         }
 
-        private void DeleteItem_Click(object sender, RoutedEventArgs e)
+        public void DeleteItem_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedCraftingItem == null)
                 return;
@@ -143,69 +166,59 @@ namespace ffxiv_crafter
             Utils.ResizeGridViewColumn(gvcItemName);
         }
 
-        private void EditItem_Click(object sender, RoutedEventArgs e)
+        public void EditItem_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedCraftingItem == null)
                 return;
 
-            var childWindow = new AddEditCraftingItemWindow(
-                materialItems, 
+            var results = childWindowProvider.ShowAddEditCraftingItemWindow(
+                this,
+                materialItems,
                 validCraftingItems,
                 item => materialItems.Add(item),
                 item => { validCraftingItems.Add(item); Notify("ValidItemNames"); },
-                null, 
+                null,
                 SelectedCraftingItem.Item);
 
-            childWindow.Owner = this;
+            if (results == null)
+                return;
 
-            if (childWindow.ShowDialog() ?? false)
-            {
-                SelectedCraftingItem.Item.Name = childWindow.ItemName;
-                SelectedCraftingItem.Item.SourceType = childWindow.SourceType;
-                SelectedCraftingItem.Item.SetMaterials(childWindow.MaterialsList);
+            SelectedCraftingItem.Item.Name = results.Value.ItemName;
+            SelectedCraftingItem.Item.SourceType = results.Value.SourceType;
+            SelectedCraftingItem.Item.SetMaterials(results.Value.Materials);
 
-                Notify("CraftingItems");
-                Utils.ResizeGridViewColumn(gvcItemName);
-            }
+            Notify("CraftingItems");
+            Utils.ResizeGridViewColumn(gvcItemName);
         }
 
-        private void EditCount_Click(object sender, RoutedEventArgs e)
+        public void EditCount_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedCraftingItem == null)
                 return;
 
-            var childWindow = new EditCountWindow(SelectedCraftingItem.Count);
+            var newCount = childWindowProvider.ShowEditCountWindow(this, SelectedCraftingItem.Count);
 
-            childWindow.Owner = this;
-
-            if (!(childWindow.ShowDialog() ?? false))
+            if (newCount == null)
                 return;
 
-            SelectedCraftingItem.Count = childWindow.CountValue;
+            SelectedCraftingItem.Count = newCount.Value;
 
             Notify("CraftingItems");
         }
 
-        private void GenerateList_Click(object sender, RoutedEventArgs e)
+        public void GenerateList_Click(object sender, RoutedEventArgs e)
         {
-            var childWindow = new GenerateListWindow(craftingItems);
-
-            childWindow.Owner = this;
-
-            childWindow.ShowDialog();
+            childWindowProvider.ShowGenerateListWindow(this, craftingItems);
         }
 
-        private void Load_Click(object sender, RoutedEventArgs e)
+        public void Load_Click(object sender, RoutedEventArgs e)
         {
-            var openDialog = new OpenFileDialog();
+            var filename = fileSystemService.GetOpenFilename();
 
-            openDialog.Filter = "Save-Data file(*.json)|*.json|All Files (*.*)|*.*";
-            openDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-            if (!(openDialog.ShowDialog() ?? false))
+            if (filename == null)
                 return;
 
-            var fileData = File.ReadAllText(openDialog.FileName);
+            var fileData = fileSystemService.ReadAllText(filename);
             var data = SaveDataJsonAdapter.FromJson(fileData);
 
             validCraftingItems = data.DefinedCraftingItems;
@@ -214,21 +227,19 @@ namespace ffxiv_crafter
 
             Notify("ValidItemNames");
             Notify("CraftingItems");
+            Utils.ResizeGridViewColumn(gvcItemName);
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        public void Save_Click(object sender, RoutedEventArgs e)
         {
-            var saveDialog = new SaveFileDialog();
+            var filename = fileSystemService.GetSaveFilename();
 
-            saveDialog.Filter = "Save-Data file(*.json)|*.json|All Files (*.*)|*.*";
-            saveDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-            if (!(saveDialog.ShowDialog() ?? false))
+            if (filename == null)
                 return;
 
             var data = SaveDataJsonAdapter.ToJson(validCraftingItems, materialItems, craftingItems);
 
-            File.WriteAllText(saveDialog.FileName, data);
+            fileSystemService.WriteAllText(filename, data);
         }
     }
 }

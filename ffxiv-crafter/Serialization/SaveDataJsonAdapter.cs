@@ -106,8 +106,10 @@ namespace ffxiv_crafter.Serialization
                     SourceType = item.SourceType
                 };
 
+                var materials = item.Materials ?? Enumerable.Empty<CountedCraftingItemData>().ToList();
+
                 craftingItem.SetMaterials(
-                    item.Materials
+                    materials
                         .Select(x =>
                         {
                             ICraftingMaterial craftingMaterial;

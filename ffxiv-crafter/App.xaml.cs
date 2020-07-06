@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using ffxiv_crafter.Services;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -31,6 +32,9 @@ namespace ffxiv_crafter
         private void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<IInitialDataService, InitialDataService>();
+            services.AddSingleton<IChildWindowProvider, ChildWindowProvider>();
+            services.AddSingleton<IFileSystemService, FileSystemService>();
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

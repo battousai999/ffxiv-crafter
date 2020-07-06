@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ffxiv_crafter"
         mc:Ignorable="d"
+        ShowInTaskbar="False"
         Title="Choose Crafting Item or Material" Width="300" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" SizeToContent="Height">
     <Grid Margin="20">
         <Grid.RowDefinitions>

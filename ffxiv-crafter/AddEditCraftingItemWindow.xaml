@@ -6,6 +6,7 @@
         xmlns:behaviors="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
         xmlns:local="clr-namespace:ffxiv_crafter"
         mc:Ignorable="d"
+        ShowInTaskbar="False"
         Title="Edit Crafting Item" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight">
     <Grid Margin="10">
         <Grid.RowDefinitions>
