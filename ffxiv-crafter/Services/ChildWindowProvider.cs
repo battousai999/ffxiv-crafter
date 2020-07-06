@@ -18,13 +18,27 @@ namespace ffxiv_crafter.Services
             string suggestedItemName,
             CraftingItem editItem = null);
 
+        (string MaterialName, SourceType SourceType, string Location)? ShowAddEditCraftingMaterialWindow(
+            Window owner,
+            string suggestedName = null,
+            CraftingMaterial editMaterial = null,
+            Func<string, bool> nameAlreadyExists = null);
+
         IEnumerable<CraftingMaterial> ShowConfigureMaterialsWindow(Window owner, List<CraftingMaterial> materials);
         int? ShowEditCountWindow(Window owner, int count);
         void ShowGenerateListWindow(Window owner, List<SpecifiedCraftingItem> craftingItems);
+        ChooseMaterialTypeWindow.MaterialTypeChoice? ShowChooseMaterialTypeWindow(Window owner);
     }
 
     public class ChildWindowProvider : IChildWindowProvider
     {
+        private readonly INotificationService notificationService;
+
+        public ChildWindowProvider(INotificationService notificationService)
+        {
+            this.notificationService = notificationService;
+        }
+
         public (string ItemName, SourceType SourceType, IEnumerable<SpecifiedCraftingMaterial> Materials)? ShowAddEditCraftingItemWindow(
             Window owner,
             IEnumerable<CraftingMaterial> definedCraftingMaterials, 
@@ -35,6 +49,8 @@ namespace ffxiv_crafter.Services
             CraftingItem editItem = null)
         {
             var window = new AddEditCraftingItemWindow(
+                notificationService,
+                this,
                 definedCraftingMaterials,
                 definedCraftingItems,
                 registerNewCraftingMaterial,
@@ -48,6 +64,22 @@ namespace ffxiv_crafter.Services
                 return null;
 
             return (window.ItemName, window.SourceType, window.MaterialsList);
+        }
+
+        public (string MaterialName, SourceType SourceType, string Location)? ShowAddEditCraftingMaterialWindow(
+            Window owner,
+            string suggestedName = null, 
+            CraftingMaterial editMaterial = null, 
+            Func<string, bool> nameAlreadyExists = null)
+        {
+            var window = new AddEditCraftingMaterialWindow(suggestedName, editMaterial, nameAlreadyExists);
+
+            window.Owner = owner;
+
+            if (!(window.ShowDialog() ?? false))
+                return null;
+
+            return (window.MaterialName, window.SourceType, window.Location);
         }
 
         public IEnumerable<CraftingMaterial> ShowConfigureMaterialsWindow(Window owner, List<CraftingMaterial> materials)
@@ -81,6 +113,18 @@ namespace ffxiv_crafter.Services
             window.Owner = owner;
 
             window.ShowDialog();
+        }
+
+        public ChooseMaterialTypeWindow.MaterialTypeChoice? ShowChooseMaterialTypeWindow(Window owner)
+        {
+            var window = new ChooseMaterialTypeWindow();
+
+            window.Owner = owner;
+
+            if (!(window.ShowDialog() ?? false))
+                return null;
+
+            return window.MaterialType;
         }
     }
 }

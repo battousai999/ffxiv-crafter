@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using System.Security.Policy;
 using System.ComponentModel;
 using ffxiv_crafter.Models;
+using ffxiv_crafter.Services;
 
 namespace ffxiv_crafter
 {
@@ -39,12 +40,16 @@ namespace ffxiv_crafter
             new SourceTypeItem { Name = "Woodworking", Value = SourceType.Woodworking }
         };
 
+        private readonly INotificationService notificationService;
+        private readonly IChildWindowProvider childWindowProvider;
         private List<CraftingMaterial> definedMaterialItems = new List<CraftingMaterial>();
         private List<CraftingItem> definedCraftingItems = new List<CraftingItem>();
         private List<SpecifiedCraftingMaterial> materialsList = new List<SpecifiedCraftingMaterial>();
         private Action<CraftingMaterial> registerNewCraftingMaterial;
         private Action<CraftingItem> registerNewCraftingItem;
         private bool isEditing;
+        private string addItemName = "";
+        private string addItemCount = "";
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -59,7 +64,29 @@ namespace ffxiv_crafter
         public IEnumerable<SpecifiedCraftingMaterial> MaterialsList => materialsList.Select(x => x);
         public SpecifiedCraftingMaterial SelectedMaterial { get; set; }
 
+        public string AddItemName
+        {
+            get => addItemName;
+            set
+            {
+                addItemName = value;
+                Notify(nameof(AddItemName));
+            }
+        }
+
+        public string AddItemCount
+        {
+            get => addItemCount;
+            set
+            {
+                addItemCount = value;
+                Notify(nameof(AddItemCount));
+            }
+        }
+
         public AddEditCraftingItemWindow(
+            INotificationService notificationService,
+            IChildWindowProvider childWindowProvider,
             IEnumerable<CraftingMaterial> definedCraftingMaterials, 
             IEnumerable<CraftingItem> definedCraftingItems, 
             Action<CraftingMaterial> registerNewCraftingMaterial, 
@@ -67,6 +94,9 @@ namespace ffxiv_crafter
             string suggestedItemName, 
             CraftingItem editItem = null)
         {
+            this.notificationService = notificationService;
+            this.childWindowProvider = childWindowProvider;
+
             if (editItem == null)
             {
                 isEditing = false;
@@ -107,12 +137,12 @@ namespace ffxiv_crafter
 
         public void AddItem_Click(object sender, RoutedEventArgs e)
         {
-            var itemName = txtAddItemName.Text;
-            var itemCountStr = txtAddItemCount.Text;
+            var itemName = AddItemName;
+            var itemCountStr = AddItemCount;
 
             if (String.IsNullOrWhiteSpace(itemName))
             {
-                MessageBox.Show("Cannot add item with no given name.");
+                notificationService.ShowMessage("Cannot add item with no given name.");
                 return;
             }
 
@@ -129,71 +159,67 @@ namespace ffxiv_crafter
 
             if (foundCraftingMaterial == null)
             {
-                //if (MessageBox.Show("This material item hasn't been defined yet. Do you want to define it now?", "Create new material item?", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.No)
-                //    return;
+                var materialType = childWindowProvider.ShowChooseMaterialTypeWindow(this);
 
-                var choiceWindow = new ChooseMaterialTypeWindow();
-
-                choiceWindow.Owner = this;
-
-                if (!(choiceWindow.ShowDialog() ?? false))
+                if (materialType == null)
                     return;
 
-                if (choiceWindow.MaterialType == ChooseMaterialTypeWindow.MaterialTypeChoice.CraftingItem)
+                if (materialType == ChooseMaterialTypeWindow.MaterialTypeChoice.CraftingItem)
                 {
-                    var childWindow = new AddEditCraftingItemWindow(
-                        definedMaterialItems, 
-                        definedCraftingItems, 
+                    var results = childWindowProvider.ShowAddEditCraftingItemWindow(
+                        this,
+                        definedMaterialItems,
+                        definedCraftingItems,
                         x =>
                         {
                             registerNewCraftingMaterial(x);
                             definedMaterialItems.Add((CraftingMaterial)x);
-                            Notify("ValidItemNames");
-                        }, 
+                            Notify(nameof(ValidItemNames));
+                        },
                         x =>
                         {
                             registerNewCraftingItem(x);
                             definedCraftingItems.Add((CraftingItem)x);
-                            Notify("ValidItemNames");
-                        }, 
+                            Notify(nameof(ValidItemNames));
+                        },
                         itemName);
 
-                    childWindow.Owner = this;
-
-                    if (!(childWindow.ShowDialog() ?? false))
+                    if (results == null)
                         return;
 
                     foundCraftingMaterial = new CraftingItem
                     {
-                        Name = childWindow.ItemName,
-                        SourceType = childWindow.SourceType
+                        Name = results.Value.ItemName,
+                        SourceType = results.Value.SourceType
                     };
 
-                    ((CraftingItem)foundCraftingMaterial).SetMaterials(childWindow.MaterialsList.ToList());
+                    ((CraftingItem)foundCraftingMaterial).SetMaterials(results.Value.Materials.ToList());
 
                     definedCraftingItems.Add((CraftingItem)foundCraftingMaterial);
                     registerNewCraftingItem((CraftingItem)foundCraftingMaterial);
-                    Notify("ValidItemNames");
+                    Notify(nameof(ValidItemNames));
                 }
                 else
                 {
-                    var childWindow = new AddEditCraftingMaterialWindow(itemName, null, name => definedMaterialItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, name)));
+                    var results = childWindowProvider.ShowAddEditCraftingMaterialWindow(
+                        this,
+                        itemName,
+                        null,
+                        name => definedMaterialItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, name)));
 
-                    childWindow.Owner = this;
-
-                    if (!(childWindow.ShowDialog() ?? false))
+                    if (results == null)
                         return;
 
                     foundCraftingMaterial = new CraftingMaterial
                     {
-                        Name = childWindow.MaterialName,
-                        SourceType = childWindow.SourceType,
-                        Location = childWindow.Location
+                        Name = results.Value.MaterialName,
+                        SourceType = results.Value.SourceType,
+                        Location = results.Value.Location
                     };
 
                     definedMaterialItems.Add((CraftingMaterial)foundCraftingMaterial);
                     registerNewCraftingMaterial((CraftingMaterial)foundCraftingMaterial);
-                    Notify("ValidItemNames");
+                    Notify(nameof(ValidItemNames));
                 }
             }
 
@@ -204,10 +230,10 @@ namespace ffxiv_crafter
             else
                 foundSpecifiedMaterial.Count += 1;
 
-            txtAddItemName.Text = "";
-            txtAddItemCount.Text = "";
+            AddItemName = "";
+            AddItemCount = "";
 
-            Notify("MaterialsList");
+            Notify(nameof(MaterialsList));
             Utils.ResizeGridViewColumn(gvcMaterialName);
 
             txtAddItemName.Focus();
@@ -219,11 +245,11 @@ namespace ffxiv_crafter
             Close();
         }
 
-        private void Ok_Click(object sender, RoutedEventArgs e)
+        public void Ok_Click(object sender, RoutedEventArgs e)
         {
             if (!isEditing && definedCraftingItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, ItemName)))
             {
-                MessageBox.Show($"There is already a crafting item called '{ItemName}'.");
+                notificationService.ShowMessage($"There is already a crafting item called '{ItemName}'.");
                 return;
             }
 
@@ -231,29 +257,27 @@ namespace ffxiv_crafter
             Close();
         }
 
-        private void EditMaterial_Click(object sender, RoutedEventArgs e)
+        public void EditCount_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedMaterial == null)
                 return;
 
-            var childWindow = new EditCountWindow(SelectedMaterial.Count);
+            var newCount = childWindowProvider.ShowEditCountWindow(this, SelectedMaterial.Count);
 
-            childWindow.Owner = this;
-
-            if (!(childWindow.ShowDialog() ?? false))
+            if (newCount == null)
                 return;
 
-            SelectedMaterial.Count = childWindow.CountValue;
-            Notify("MaterialsList");
+            SelectedMaterial.Count = newCount.Value;
+            Notify(nameof(MaterialsList));
         }
 
-        private void DeleteMaterial_Click(object sender, RoutedEventArgs e)
+        public void DeleteMaterial_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedMaterial == null)
                 return;
 
             materialsList.Remove(SelectedMaterial);
-            Notify("MaterialsList");
+            Notify(nameof(MaterialsList));
         }
     }
 }

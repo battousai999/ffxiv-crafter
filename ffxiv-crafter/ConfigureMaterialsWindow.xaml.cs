@@ -74,7 +74,7 @@ namespace ffxiv_crafter
 
                 materialItems.Add(newItem);
 
-                Notify("MaterialItems");
+                Notify(nameof(MaterialItems));
                 ResizeGridViewColumns();
             }
         }
@@ -94,7 +94,7 @@ namespace ffxiv_crafter
                 SelectedMaterialItem.SourceType = childWindow.SourceType;
                 SelectedMaterialItem.Location = childWindow.Location;
 
-                Notify("MaterialItems");
+                Notify(nameof(MaterialItems));
                 ResizeGridViewColumns();
             }
         }
@@ -106,7 +106,7 @@ namespace ffxiv_crafter
 
             materialItems.Remove(SelectedMaterialItem);
 
-            Notify("MaterialItems");
+            Notify(nameof(MaterialItems));
             ResizeGridViewColumns();
         }
     }

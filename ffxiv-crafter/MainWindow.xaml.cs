@@ -33,6 +33,7 @@ namespace ffxiv_crafter
         private List<SpecifiedCraftingItem> craftingItems = new List<SpecifiedCraftingItem>();
         private readonly IChildWindowProvider childWindowProvider;
         private readonly IFileSystemService fileSystemService;
+        private readonly INotificationService notificationService;
         private string itemName = "";
         private string itemCount = "";
 
@@ -47,7 +48,7 @@ namespace ffxiv_crafter
             set
             {
                 itemName = value;
-                Notify("ItemName");
+                Notify(nameof(ItemName));
             }
         }
 
@@ -57,14 +58,19 @@ namespace ffxiv_crafter
             set
             {
                 itemCount = value;
-                Notify("ItemCount");
+                Notify(nameof(ItemCount));
             }
         }
 
-        public MainWindow(IInitialDataService initialDataService, IChildWindowProvider childWindowProvider, IFileSystemService fileSystemService)
+        public MainWindow(
+            IInitialDataService initialDataService, 
+            IChildWindowProvider childWindowProvider, 
+            IFileSystemService fileSystemService,
+            INotificationService notificationService)
         {
             this.childWindowProvider = childWindowProvider;
             this.fileSystemService = fileSystemService;
+            this.notificationService = notificationService;
 
             validCraftingItems = initialDataService.GetCraftingItems().ToList();
             materialItems = initialDataService.GetCraftingMaterials().ToList();
@@ -89,7 +95,7 @@ namespace ffxiv_crafter
 
             if (String.IsNullOrWhiteSpace(ItemName))
             {
-                MessageBox.Show("Cannot add item with no given name.");
+                notificationService.ShowMessage("Cannot add item with no given name.");
                 return;
             }
 
@@ -108,7 +114,7 @@ namespace ffxiv_crafter
                     materialItems,
                     validCraftingItems,
                     item => materialItems.Add(item),
-                    item => { validCraftingItems.Add(item); Notify("ValidItemNames"); },
+                    item => { validCraftingItems.Add(item); Notify(nameof(ValidItemNames)); },
                     ItemName);
 
                 if (results == null)
@@ -136,7 +142,7 @@ namespace ffxiv_crafter
             ItemName = "";
             ItemCount = "";
 
-            Notify("CraftingItems");
+            Notify(nameof(CraftingItems));
             Utils.ResizeGridViewColumn(gvcItemName);
 
             txtAddItemName.Focus();
@@ -162,7 +168,7 @@ namespace ffxiv_crafter
 
             craftingItems.Remove(SelectedCraftingItem);
 
-            Notify("CraftingItems");
+            Notify(nameof(CraftingItems));
             Utils.ResizeGridViewColumn(gvcItemName);
         }
 
@@ -176,7 +182,7 @@ namespace ffxiv_crafter
                 materialItems,
                 validCraftingItems,
                 item => materialItems.Add(item),
-                item => { validCraftingItems.Add(item); Notify("ValidItemNames"); },
+                item => { validCraftingItems.Add(item); Notify(nameof(ValidItemNames)); },
                 null,
                 SelectedCraftingItem.Item);
 
@@ -187,7 +193,7 @@ namespace ffxiv_crafter
             SelectedCraftingItem.Item.SourceType = results.Value.SourceType;
             SelectedCraftingItem.Item.SetMaterials(results.Value.Materials);
 
-            Notify("CraftingItems");
+            Notify(nameof(CraftingItems));
             Utils.ResizeGridViewColumn(gvcItemName);
         }
 
@@ -203,7 +209,7 @@ namespace ffxiv_crafter
 
             SelectedCraftingItem.Count = newCount.Value;
 
-            Notify("CraftingItems");
+            Notify(nameof(CraftingItems));
         }
 
         public void GenerateList_Click(object sender, RoutedEventArgs e)
@@ -225,8 +231,8 @@ namespace ffxiv_crafter
             materialItems = data.DefinedCraftingMaterials;
             craftingItems = data.CraftingItems;
 
-            Notify("ValidItemNames");
-            Notify("CraftingItems");
+            Notify(nameof(ValidItemNames));
+            Notify(nameof(CraftingItems));
             Utils.ResizeGridViewColumn(gvcItemName);
         }
 

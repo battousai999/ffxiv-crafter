@@ -22,6 +22,7 @@ namespace ffxiv_crafter.UnitTests
         private readonly IInitialDataService initialDataService = Substitute.For<IInitialDataService>();
         private readonly IChildWindowProvider childWindowProvider = Substitute.For<IChildWindowProvider>();
         private readonly IFileSystemService fileSystemService = Substitute.For<IFileSystemService>();
+        private readonly INotificationService notificationService = Substitute.For<INotificationService>();
         private readonly ICraftingMaterial craftingMaterial;
 
         public MainWindowTests()
@@ -38,11 +39,6 @@ namespace ffxiv_crafter.UnitTests
         private SpecifiedCraftingMaterial BuildSpecifiedCraftingMaterial(int count, ICraftingMaterial material)
         {
             return new SpecifiedCraftingMaterial { Material = material, Count = count };
-        }
-
-        private SpecifiedCraftingItem BuildSpecifiedCraftingItem(int count, CraftingItem item)
-        {
-            return new SpecifiedCraftingItem { Item = item, Count = count };
         }
 
         private CraftingItem BuildCraftingItem(string name, SourceType sourceType = SourceType.Blacksmith)
@@ -92,7 +88,7 @@ namespace ffxiv_crafter.UnitTests
 
         private MainWindow GetSubject()
         {
-            return new MainWindow(initialDataService, childWindowProvider, fileSystemService);
+            return new MainWindow(initialDataService, childWindowProvider, fileSystemService, notificationService);
         }
 
         [UIFact]
@@ -101,6 +97,22 @@ namespace ffxiv_crafter.UnitTests
             var window = GetSubject();
 
             window.ItemName = TestCraftingItemName;
+            window.ItemCount = "1";
+
+            window.AddItem_Click(window, new RoutedEventArgs());
+
+            window.CraftingItems.Count().ShouldBe(1);
+            window.CraftingItems.First().Name.ShouldBe(TestCraftingItemName);
+            window.CraftingItems.First().Count.ShouldBe(1);
+        }
+
+        [UIFact]
+        public void CraftingItemAddedToList_IfAddItemClickWithEmptyStringForCountEntered()
+        {
+            var window = GetSubject();
+
+            window.ItemName = TestCraftingItemName;
+            window.ItemCount = "";
 
             window.AddItem_Click(window, new RoutedEventArgs());
 
@@ -174,6 +186,18 @@ namespace ffxiv_crafter.UnitTests
             window.AddItem_Click(window, new RoutedEventArgs());
 
             window.CraftingItems.Count().ShouldBe(0);
+        }
+
+        [UIFact]
+        public void NotificationToUser_IfAddItemClickedWithEmptyItemName()
+        {
+            var window = GetSubject();
+
+            window.ItemName = "";
+
+            window.AddItem_Click(window, new RoutedEventArgs());
+
+            notificationService.Received(1).ShowMessage(Arg.Any<string>());
         }
 
         [UIFact]

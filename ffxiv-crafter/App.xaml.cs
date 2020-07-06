@@ -35,6 +35,7 @@ namespace ffxiv_crafter
             services.AddSingleton<IInitialDataService, InitialDataService>();
             services.AddSingleton<IChildWindowProvider, ChildWindowProvider>();
             services.AddSingleton<IFileSystemService, FileSystemService>();
+            services.AddSingleton<INotificationService, NotificationService>();
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
