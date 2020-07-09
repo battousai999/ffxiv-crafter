@@ -72,7 +72,7 @@ namespace ffxiv_crafter.Services
             CraftingMaterial editMaterial = null, 
             Func<string, bool> nameAlreadyExists = null)
         {
-            var window = new AddEditCraftingMaterialWindow(suggestedName, editMaterial, nameAlreadyExists);
+            var window = new AddEditCraftingMaterialWindow(notificationService, suggestedName, editMaterial, nameAlreadyExists);
 
             window.Owner = owner;
 
@@ -84,7 +84,7 @@ namespace ffxiv_crafter.Services
 
         public IEnumerable<CraftingMaterial> ShowConfigureMaterialsWindow(Window owner, List<CraftingMaterial> materials)
         {
-            var window = new ConfigureMaterialsWindow(materials);
+            var window = new ConfigureMaterialsWindow(this, materials);
 
             window.Owner = owner;
 

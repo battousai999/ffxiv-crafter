@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using ffxiv_crafter.Models;
+using ffxiv_crafter.Services;
 
 namespace ffxiv_crafter
 {
@@ -21,14 +22,16 @@ namespace ffxiv_crafter
     /// </summary>
     public partial class ConfigureMaterialsWindow : Window, INotifyPropertyChanged
     {
+        private readonly IChildWindowProvider childWindowProvider;
         private List<CraftingMaterial> materialItems;
 
         public IEnumerable<CraftingMaterial> MaterialItems => materialItems.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
 
         public CraftingMaterial SelectedMaterialItem { get; set; }
 
-        public ConfigureMaterialsWindow(List<CraftingMaterial> materialItems)
+        public ConfigureMaterialsWindow(IChildWindowProvider childWindowProvider, List<CraftingMaterial> materialItems)
         {
+            this.childWindowProvider = childWindowProvider;
             this.materialItems = materialItems;
             DataContext = this;
 
@@ -59,24 +62,26 @@ namespace ffxiv_crafter
 
         private void NewItem_Click(object sender, RoutedEventArgs e)
         {
-            var childWindow = new AddEditCraftingMaterialWindow(null, null, name => materialItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, name)));
+            var results = childWindowProvider.ShowAddEditCraftingMaterialWindow(
+                this,
+                null,
+                null,
+                name => materialItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, name)));
 
-            childWindow.Owner = this;
+            if (results == null)
+                return;
 
-            if (childWindow.ShowDialog() ?? false)
+            var newItem = new CraftingMaterial
             {
-                var newItem = new CraftingMaterial
-                {
-                    Name = childWindow.MaterialName,
-                    SourceType = childWindow.SourceType,
-                    Location = childWindow.Location
-                };
+                Name = results.Value.MaterialName,
+                SourceType = results.Value.SourceType,
+                Location = results.Value.Location
+            };
 
-                materialItems.Add(newItem);
+            materialItems.Add(newItem);
 
-                Notify(nameof(MaterialItems));
-                ResizeGridViewColumns();
-            }
+            Notify(nameof(MaterialItems));
+            ResizeGridViewColumns();
         }
 
         private void EditItem_Click(object sender, RoutedEventArgs e)
@@ -84,19 +89,20 @@ namespace ffxiv_crafter
             if (SelectedMaterialItem == null)
                 return;
 
-            var childWindow = new AddEditCraftingMaterialWindow(null, SelectedMaterialItem);
+            var results = childWindowProvider.ShowAddEditCraftingMaterialWindow(
+                this,
+                null,
+                SelectedMaterialItem);
 
-            childWindow.Owner = this;
+            if (results == null)
+                return;
 
-            if (childWindow.ShowDialog() ?? false)
-            {
-                SelectedMaterialItem.Name = childWindow.MaterialName;
-                SelectedMaterialItem.SourceType = childWindow.SourceType;
-                SelectedMaterialItem.Location = childWindow.Location;
+            SelectedMaterialItem.Name = results.Value.MaterialName;
+            SelectedMaterialItem.SourceType = results.Value.SourceType;
+            SelectedMaterialItem.Location = results.Value.Location;
 
-                Notify(nameof(MaterialItems));
-                ResizeGridViewColumns();
-            }
+            Notify(nameof(MaterialItems));
+            ResizeGridViewColumns();
         }
 
         private void DeleteItem_Click(object sender, RoutedEventArgs e)

@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using ffxiv_crafter.Models;
+using ffxiv_crafter.Services;
 
 namespace ffxiv_crafter
 {
@@ -27,6 +28,7 @@ namespace ffxiv_crafter
         }
 
         private Func<string, bool> nameAlreadyExists;
+        private readonly INotificationService notificationService;
 
         public List<SourceTypeItem> SourceTypes = new List<SourceTypeItem>
         {
@@ -39,10 +41,12 @@ namespace ffxiv_crafter
         public string MaterialName { get; set; }
         public SourceTypeItem SelectedSourceType { get; set; }
         public SourceType SourceType => SelectedSourceType?.Value ?? SourceType.None;
-        public string Location { get; set; }
+        public string Location { get; set; } = "";
 
-        public AddEditCraftingMaterialWindow(string suggestedName = null, CraftingMaterial editMaterial = null, Func<string, bool> nameAlreadyExists = null)
+        public AddEditCraftingMaterialWindow(INotificationService notificationService, string suggestedName = null, CraftingMaterial editMaterial = null, Func<string, bool> nameAlreadyExists = null)
         {
+            this.notificationService = notificationService;
+
             if (editMaterial == null)
             {
                 MaterialName = suggestedName ?? "";
@@ -70,31 +74,25 @@ namespace ffxiv_crafter
             txtMaterialName.Focus();
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        public void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
             Close();
         }
 
-        private void Ok_Click(object sender, RoutedEventArgs e)
+        public void Ok_Click(object sender, RoutedEventArgs e)
         {
             if (String.IsNullOrWhiteSpace(MaterialName))
             {
-                MessageBox.Show("Cannot save material name with no name.");
+                notificationService.ShowMessage("Cannot save material name with no name.");
                 return;
             }
 
             if (nameAlreadyExists(MaterialName))
             {
-                MessageBox.Show($"There is already a crafting item called '{MaterialName}'.");
+                notificationService.ShowMessage($"There is already a crafting item called '{MaterialName}'.");
                 return;
             }
-
-            //if (String.IsNullOrWhiteSpace(Location))
-            //{
-            //    if (MessageBox.Show("Are you sure that you want to leave the location empty?", "Location empty", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.No)
-            //        return;
-            //}
 
             DialogResult = true;
             Close();
