@@ -54,13 +54,13 @@ namespace ffxiv_crafter
             Utils.ResizeGridViewColumn(gvcMaterialLocation);
         }
 
-        private void Close_Click(object sender, RoutedEventArgs e)
+        public void Close_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
             Close();
         }
 
-        private void NewItem_Click(object sender, RoutedEventArgs e)
+        public void NewItem_Click(object sender, RoutedEventArgs e)
         {
             var results = childWindowProvider.ShowAddEditCraftingMaterialWindow(
                 this,
@@ -84,7 +84,7 @@ namespace ffxiv_crafter
             ResizeGridViewColumns();
         }
 
-        private void EditItem_Click(object sender, RoutedEventArgs e)
+        public void EditItem_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedMaterialItem == null)
                 return;
@@ -105,7 +105,7 @@ namespace ffxiv_crafter
             ResizeGridViewColumns();
         }
 
-        private void DeleteItem_Click(object sender, RoutedEventArgs e)
+        public void DeleteItem_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedMaterialItem == null)
                 return;

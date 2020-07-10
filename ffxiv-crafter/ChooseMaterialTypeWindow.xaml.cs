@@ -34,7 +34,7 @@ namespace ffxiv_crafter
             this.KeyUp += ChooseMaterialTypeWindow_KeyUp;
         }
 
-        private void ChooseMaterialTypeWindow_KeyUp(object sender, KeyEventArgs e)
+        public void ChooseMaterialTypeWindow_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.M)
             {
@@ -46,13 +46,13 @@ namespace ffxiv_crafter
             }
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        public void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
             Close();
         }
 
-        private void CraftingItem_Click(object sender, RoutedEventArgs e)
+        public void CraftingItem_Click(object sender, RoutedEventArgs e)
         {
             MaterialType = MaterialTypeChoice.CraftingItem;
 
@@ -60,7 +60,7 @@ namespace ffxiv_crafter
             Close();
         }
 
-        private void CraftingMaterial_Click(object sender, RoutedEventArgs e)
+        public void CraftingMaterial_Click(object sender, RoutedEventArgs e)
         {
             MaterialType = MaterialTypeChoice.CraftingMaterial;
 

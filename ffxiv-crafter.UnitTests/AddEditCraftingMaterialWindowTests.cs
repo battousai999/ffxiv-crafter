@@ -115,7 +115,7 @@ namespace ffxiv_crafter.UnitTests
 
             // Since the OK button sets the DialogResult and these tests never call window.ShowDialog() (since
             // that call blocks), an exception is expected here.
-            Should.Throw<Exception>(() => { window.Ok_Click(window, new RoutedEventArgs()); });
+            Should.Throw<InvalidOperationException>(() => { window.Ok_Click(window, new RoutedEventArgs()); });
 
             notificationService.DidNotReceive().ShowMessage(Arg.Any<string>());
         }
@@ -129,7 +129,7 @@ namespace ffxiv_crafter.UnitTests
 
             // Since the OK button sets the DialogResult and these tests never call window.ShowDialog() (since
             // that call blocks), an exception is expected here.
-            Should.Throw<Exception>(() => { window.Ok_Click(window, new RoutedEventArgs()); });
+            Should.Throw<InvalidOperationException>(() => { window.Ok_Click(window, new RoutedEventArgs()); });
 
             notificationService.DidNotReceive().ShowMessage(Arg.Any<string>());
         }
