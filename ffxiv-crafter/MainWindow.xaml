@@ -30,6 +30,7 @@
             </ListView>
             
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 10 0 0">
+                <Button Content="Clear" MinWidth="75" Margin="0 0 10 0" Click="Clear_Click" />
                 <Button Content="Edit Count" MinWidth="75" Margin="0 0 10 0" Click="EditCount_Click" />
                 <Button Content="Edit" MinWidth="75" Margin="0 0 10 0" Click="EditItem_Click" />
                 <Button Content="Delete" MinWidth="75" Click="DeleteItem_Click" />

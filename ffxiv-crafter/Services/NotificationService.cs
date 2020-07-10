@@ -8,6 +8,7 @@ namespace ffxiv_crafter.Services
     public interface INotificationService
     {
         void ShowMessage(string message);
+        bool ShowConfirmation(string message, string title);
     }
 
     public class NotificationService : INotificationService
@@ -15,6 +16,11 @@ namespace ffxiv_crafter.Services
         public void ShowMessage(string message)
         {
             MessageBox.Show(message);
+        }
+
+        public bool ShowConfirmation(string message, string title)
+        {
+            return MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes;
         }
     }
 }

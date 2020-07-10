@@ -518,5 +518,39 @@ namespace ffxiv_crafter.UnitTests
 
             fileSystemService.Received(1).WriteAllText(Arg.Any<string>(), Arg.Any<string>());
         }
+
+        [UIFact]
+        public void CraftingItemsCleared_IfClearClickedAndConfirmed()
+        {
+            var window = GetSubject();
+
+            notificationService
+                .ShowConfirmation(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(true);
+
+            window.ItemName = TestCraftingItemName;
+            window.AddItem_Click(window, new RoutedEventArgs());
+
+            window.Clear_Click(window, new RoutedEventArgs());
+
+            window.CraftingItems.Count().ShouldBe(0);
+        }
+
+        [UIFact]
+        public void CraftingItemsNotChanged_IfClearClickedAndNotConfirmed()
+        {
+            var window = GetSubject();
+
+            notificationService
+                .ShowConfirmation(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(false);
+
+            window.ItemName = TestCraftingItemName;
+            window.AddItem_Click(window, new RoutedEventArgs());
+
+            window.Clear_Click(window, new RoutedEventArgs());
+
+            window.CraftingItems.Count().ShouldNotBe(0);
+        }
     }
 }

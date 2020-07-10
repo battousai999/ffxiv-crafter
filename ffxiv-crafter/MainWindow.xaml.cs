@@ -247,5 +247,15 @@ namespace ffxiv_crafter
 
             fileSystemService.WriteAllText(filename, data);
         }
+
+        public void Clear_Click(object sender, RoutedEventArgs e)
+        {
+            if (!notificationService.ShowConfirmation("Are you sure that you want to clear all crafting items?", "Clear All Items"))
+                return;
+
+            craftingItems.RemoveAll(_ => true);
+
+            Notify(nameof(CraftingItems));
+        }
     }
 }
