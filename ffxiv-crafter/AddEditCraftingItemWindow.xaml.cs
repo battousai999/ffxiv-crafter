@@ -279,5 +279,63 @@ namespace ffxiv_crafter
             materialsList.Remove(SelectedMaterial);
             Notify(nameof(MaterialsList));
         }
+
+        public void Edit_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedMaterial == null)
+                return;
+
+            if (SelectedMaterial.Material is CraftingItem)
+            {
+                var craftingItem = SelectedMaterial.Material as CraftingItem;
+
+                var results = childWindowProvider.ShowAddEditCraftingItemWindow(
+                    this,
+                    definedMaterialItems,
+                    definedCraftingItems,
+                    x =>
+                    {
+                        registerNewCraftingMaterial(x);
+                        definedMaterialItems.Add((CraftingMaterial)x);
+                        Notify(nameof(ValidItemNames));
+                    },
+                    x =>
+                    {
+                        registerNewCraftingItem(x);
+                        definedCraftingItems.Add((CraftingItem)x);
+                        Notify(nameof(ValidItemNames));
+                    },
+                    null,
+                    craftingItem.Clone());
+
+                if (results == null)
+                    return;
+
+                craftingItem.Name = results.Value.ItemName;
+                craftingItem.SourceType = results.Value.SourceType;
+                craftingItem.SetMaterials(results.Value.Materials);
+            }
+            else
+            {
+                var material = SelectedMaterial.Material as CraftingMaterial;
+
+                var results = childWindowProvider.ShowAddEditCraftingMaterialWindow(
+                    this,
+                    null,
+                    material.Clone(),
+                    name => definedMaterialItems.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, name)));
+
+                if (results == null)
+                    return;
+
+                material.Name = results.Value.MaterialName;
+                material.SourceType = results.Value.SourceType;
+                material.Location = results.Value.Location;
+            }
+
+            Notify(nameof(ValidItemNames));
+            Notify(nameof(MaterialsList));
+            Utils.ResizeGridViewColumn(gvcMaterialName);
+        }
     }
 }

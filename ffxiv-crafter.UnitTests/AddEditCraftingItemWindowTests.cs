@@ -8,6 +8,7 @@ using ffxiv_crafter.Models;
 using System.Linq;
 using ffxiv_crafter.Services;
 using System.Windows;
+using System.Security.RightsManagement;
 
 namespace ffxiv_crafter.UnitTests
 {
@@ -467,6 +468,170 @@ namespace ffxiv_crafter.UnitTests
             Should.Throw<InvalidOperationException>(() => { window.Ok_Click(window, new RoutedEventArgs()); });
 
             notificationService.DidNotReceive().ShowMessage(Arg.Any<string>());
+        }
+
+        [UIFact]
+        public void CraftingItemUpdated_IfEditItemClickedWithCraftingItemSelectedAndDialogThatReturns()
+        {
+            var material = editedCraftingItem.Materials.First(x => x.Material is CraftingItem);
+            var craftingItem = (CraftingItem)material.Material;
+            var newItemName = craftingItem.Name + "***";
+            var newSourceType = (craftingItem.SourceType == SourceType.Alchemy ? SourceType.Armorcraft : SourceType.Alchemy);
+            var newMaterials = craftingItem.Materials.Skip(1).ToList();
+
+            childWindowProvider
+                .ShowAddEditCraftingItemWindow(
+                    Arg.Any<Window>(),
+                    Arg.Any<IEnumerable<CraftingMaterial>>(),
+                    Arg.Any<IEnumerable<CraftingItem>>(),
+                    Arg.Any<Action<CraftingMaterial>>(),
+                    Arg.Any<Action<CraftingItem>>(),
+                    Arg.Any<string>(),
+                    Arg.Any<CraftingItem>())
+                .Returns((newItemName, newSourceType, newMaterials));
+
+            var window = GetSubject(null, editedCraftingItem);
+
+            window.SelectedMaterial = window.MaterialsList.FirstOrDefault(x => x.Name == craftingItem.Name);
+
+            window.Edit_Click(window, new RoutedEventArgs());
+
+            var expectedItem = window.MaterialsList.FirstOrDefault(x => x.Name == newItemName);
+
+            expectedItem.ShouldNotBeNull();
+            expectedItem.Name.ShouldBe(newItemName);
+            expectedItem.Material.SourceType.ShouldBe(newSourceType);
+            ((CraftingItem)expectedItem.Material).Materials.ShouldBe(newMaterials);
+        }
+
+        [UIFact]
+        public void CraftingItemNotUpdated_IfEditItemClickedWithCraftingItemSelectedAndDialogThatDoesNotReturn()
+        {
+            var material = editedCraftingItem.Materials.First(x => x.Material is CraftingItem);
+            var craftingItem = ((CraftingItem)material.Material).Clone();
+
+            childWindowProvider
+                .ShowAddEditCraftingItemWindow(
+                    Arg.Any<Window>(),
+                    Arg.Any<IEnumerable<CraftingMaterial>>(),
+                    Arg.Any<IEnumerable<CraftingItem>>(),
+                    Arg.Any<Action<CraftingMaterial>>(),
+                    Arg.Any<Action<CraftingItem>>(),
+                    Arg.Any<string>(),
+                    Arg.Any<CraftingItem>())
+                .Returns(((string ItemName, SourceType SourceType, IEnumerable<SpecifiedCraftingMaterial> Materials)?)null);
+
+            var window = GetSubject(null, editedCraftingItem);
+
+            window.SelectedMaterial = window.MaterialsList.FirstOrDefault(x => x.Name == craftingItem.Name);
+
+            window.Edit_Click(window, new RoutedEventArgs());
+
+            var expectedItem = window.MaterialsList.FirstOrDefault(x => x.Name == craftingItem.Name);
+
+            expectedItem.ShouldNotBeNull();
+            expectedItem.Name.ShouldBe(craftingItem.Name);
+            expectedItem.Material.SourceType.ShouldBe(craftingItem.SourceType);
+            ((CraftingItem)expectedItem.Material).Materials.ShouldBe(craftingItem.Materials);
+        }
+
+        [UIFact]
+        public void CraftingItemNotUpdated_IfEditItemClickedWithoutItemSelected()
+        {
+            var material = editedCraftingItem.Materials.First(x => x.Material is CraftingItem);
+            var craftingItem = ((CraftingItem)material.Material).Clone();
+
+            var window = GetSubject(null, editedCraftingItem);
+
+            window.SelectedMaterial = null;
+
+            window.Edit_Click(window, new RoutedEventArgs());
+
+            var expectedItem = window.MaterialsList.FirstOrDefault(x => x.Name == craftingItem.Name);
+
+            expectedItem.ShouldNotBeNull();
+            expectedItem.Name.ShouldBe(craftingItem.Name);
+            expectedItem.Material.SourceType.ShouldBe(craftingItem.SourceType);
+            ((CraftingItem)expectedItem.Material).Materials.ShouldBe(craftingItem.Materials);
+        }
+
+        [UIFact]
+        public void CraftingMaterialUpdated_IfEditItemClickedWithCraftingMaterialSelectedAndDialogThatReturns()
+        {
+            var material = editedCraftingItem.Materials.First(x => x.Material is CraftingMaterial);
+            var craftingMaterial = (CraftingMaterial)material.Material;
+            var newItemName = craftingMaterial.Name + "***";
+            var newSourceType = (craftingMaterial.SourceType == SourceType.Botany ? SourceType.Mining : SourceType.Botany);
+            var newLocation = craftingMaterial.Location + "***";
+
+            childWindowProvider
+                .ShowAddEditCraftingMaterialWindow(
+                    Arg.Any<Window>(),
+                    Arg.Any<string>(),
+                    Arg.Any<CraftingMaterial>(),
+                    Arg.Any<Func<string, bool>>())
+                .Returns((newItemName, newSourceType, newLocation));
+
+            var window = GetSubject(null, editedCraftingItem);
+
+            window.SelectedMaterial = window.MaterialsList.FirstOrDefault(x => x.Name == craftingMaterial.Name);
+
+            window.Edit_Click(window, new RoutedEventArgs());
+
+            var expectedItem = window.MaterialsList.FirstOrDefault(x => x.Name == newItemName);
+
+            expectedItem.ShouldNotBeNull();
+            expectedItem.Name.ShouldBe(newItemName);
+            expectedItem.Material.SourceType.ShouldBe(newSourceType);
+            expectedItem.Material.Location.ShouldBe(newLocation);
+        }
+
+        [UIFact]
+        public void CraftingMaterialNotUpdated_IfEditItemClickedWithCraftingMaterialSelectedAndDialogThatDoesNotReturn()
+        {
+            var material = editedCraftingItem.Materials.First(x => x.Material is CraftingMaterial);
+            var craftingMaterial = (CraftingMaterial)material.Material;
+
+            childWindowProvider
+                .ShowAddEditCraftingMaterialWindow(
+                    Arg.Any<Window>(),
+                    Arg.Any<string>(),
+                    Arg.Any<CraftingMaterial>(),
+                    Arg.Any<Func<string, bool>>())
+                .Returns(((string MaterialName, SourceType SourceType, string Location)?)null);
+
+            var window = GetSubject(null, editedCraftingItem);
+
+            window.SelectedMaterial = window.MaterialsList.FirstOrDefault(x => x.Name == craftingMaterial.Name);
+
+            window.Edit_Click(window, new RoutedEventArgs());
+
+            var expectedItem = window.MaterialsList.FirstOrDefault(x => x.Name == craftingMaterial.Name);
+
+            expectedItem.ShouldNotBeNull();
+            expectedItem.Name.ShouldBe(craftingMaterial.Name);
+            expectedItem.Material.SourceType.ShouldBe(craftingMaterial.SourceType);
+            expectedItem.Material.Location.ShouldBe(craftingMaterial.Location);
+        }
+
+        [UIFact]
+        public void CraftingMaterialNotUpdated_IfEditItemClickedWithoutItemSelected()
+        {
+            var material = editedCraftingItem.Materials.First(x => x.Material is CraftingMaterial);
+            var craftingMaterial = (CraftingMaterial)material.Material;
+
+            var window = GetSubject(null, editedCraftingItem);
+
+            window.SelectedMaterial = null;
+
+            window.Edit_Click(window, new RoutedEventArgs());
+
+            var expectedItem = window.MaterialsList.FirstOrDefault(x => x.Name == craftingMaterial.Name);
+
+            expectedItem.ShouldNotBeNull();
+            expectedItem.Name.ShouldBe(craftingMaterial.Name);
+            expectedItem.Material.SourceType.ShouldBe(craftingMaterial.SourceType);
+            expectedItem.Material.Location.ShouldBe(craftingMaterial.Location);
         }
     }
 }

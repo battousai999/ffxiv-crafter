@@ -52,5 +52,15 @@ namespace ffxiv_crafter.Models
 
             return dedupedMaterials;
         }
+
+        public CraftingItem Clone()
+        {
+            return new CraftingItem
+            {
+                Name = this.Name,
+                SourceType = this.SourceType,
+                Materials = this.Materials.ToList()
+            };
+        }
     }
 }

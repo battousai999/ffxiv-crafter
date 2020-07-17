@@ -27,5 +27,15 @@ namespace ffxiv_crafter.Models
 
         public string SourceTypeName => SourceType == SourceType.None ? "Drop" : SourceType.ToString();
         public bool IsCraftable => false;
+
+        public CraftingMaterial Clone()
+        {
+            return new CraftingMaterial
+            {
+                Name = this.Name,
+                SourceType = this.SourceType,
+                Location = this.Location
+            };
+        }
     }
 }
