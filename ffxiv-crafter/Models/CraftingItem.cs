@@ -32,6 +32,8 @@ namespace ffxiv_crafter.Models
             }
         }
 
+        public string SourceTypeName => SourceType == SourceType.None ? "" : SourceType.ToString();
+
         public List<SpecifiedCraftingMaterial> Materials { get; private set; } = new List<SpecifiedCraftingMaterial>();
 
         public void SetMaterials(IEnumerable<SpecifiedCraftingMaterial> materials)

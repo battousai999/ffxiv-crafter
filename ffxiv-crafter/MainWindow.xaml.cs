@@ -148,7 +148,7 @@ namespace ffxiv_crafter
             txtAddItemName.Focus();
         }
 
-        public void ConfigureItems_Click(object sender, RoutedEventArgs e)
+        public void ConfigureMaterials_Click(object sender, RoutedEventArgs e)
         {
             var results = childWindowProvider.ShowConfigureMaterialsWindow(this, materialItems.ToList());
 
@@ -256,6 +256,31 @@ namespace ffxiv_crafter
             craftingItems.RemoveAll(_ => true);
 
             Notify(nameof(CraftingItems));
+        }
+
+        private void txtAddItemName_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                AddItem_Click(sender, new RoutedEventArgs());
+        }
+
+        public void ConfigureItems_Click(object sender, RoutedEventArgs e)
+        {
+            var results = childWindowProvider.ShowConfigureItemsWindow(
+                this,
+                validCraftingItems,
+                materialItems,
+                item => materialItems.Add(item),
+                item => craftingItems.RemoveAll(x => x.Item == item));
+
+            if (results == null)
+                return;
+
+            validCraftingItems = results.ToList();
+
+            Notify(nameof(ValidItemNames));
+            Notify(nameof(CraftingItems));
+            Utils.ResizeGridViewColumn(gvcItemName);
         }
     }
 }

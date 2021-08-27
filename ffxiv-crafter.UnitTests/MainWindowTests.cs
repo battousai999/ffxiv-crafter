@@ -216,11 +216,39 @@ namespace ffxiv_crafter.UnitTests
 
             var window = GetSubject();
 
-            window.ConfigureItems_Click(window, new RoutedEventArgs());
+            window.ConfigureMaterials_Click(window, new RoutedEventArgs());
 
             var expectedValidItemNames = newMaterials.Select(x => x.Name);
 
             window.MaterialItemNames.ShouldBe(expectedValidItemNames);
+        }
+
+        [UIFact]
+        public void CraftingItemsUpdated_IfConfigureMaterialsClickedAndReturns()
+        {
+            var newCraftingItems = new List<CraftingItem>
+            {
+                new CraftingItem { Name = "test-crafting-item-1", SourceType = SourceType.Alchemy },
+                new CraftingItem { Name = "test-crafting-item-2", SourceType = SourceType.Alchemy },
+                new CraftingItem { Name = "test-crafting-item-3", SourceType = SourceType.Alchemy }
+            };
+
+            childWindowProvider
+                .ShowConfigureItemsWindow(
+                    Arg.Any<Window>(),
+                    Arg.Any<List<CraftingItem>>(),
+                    Arg.Any<List<CraftingMaterial>>(),
+                    Arg.Any<Action<CraftingMaterial>>(),
+                    Arg.Any<Action<CraftingItem>>())
+                .Returns(newCraftingItems);
+
+            var window = GetSubject();
+
+            window.ConfigureItems_Click(window, new RoutedEventArgs());
+
+            var expectedCraftingItemNames = newCraftingItems.Select(x => x.Name);
+
+            window.ValidItemNames.ShouldBe(expectedCraftingItemNames);
         }
 
         [UIFact]
@@ -234,7 +262,7 @@ namespace ffxiv_crafter.UnitTests
 
             var expectedValidItemNames = window.MaterialItemNames.ToList();
 
-            window.ConfigureItems_Click(window, new RoutedEventArgs());
+            window.ConfigureMaterials_Click(window, new RoutedEventArgs());
 
             window.MaterialItemNames.ShouldBe(expectedValidItemNames);
         }

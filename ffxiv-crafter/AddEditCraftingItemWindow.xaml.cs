@@ -337,5 +337,11 @@ namespace ffxiv_crafter
             Notify(nameof(MaterialsList));
             Utils.ResizeGridViewColumn(gvcMaterialName);
         }
+
+        private void txtAddItemName_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                AddItem_Click(sender, new RoutedEventArgs());
+        }
     }
 }

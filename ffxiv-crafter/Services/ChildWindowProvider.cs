@@ -1,6 +1,7 @@
 ﻿using ffxiv_crafter.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using System.Windows;
@@ -25,6 +26,14 @@ namespace ffxiv_crafter.Services
             Func<string, bool> nameAlreadyExists = null);
 
         IEnumerable<CraftingMaterial> ShowConfigureMaterialsWindow(Window owner, List<CraftingMaterial> materials);
+
+        IEnumerable<CraftingItem> ShowConfigureItemsWindow(
+            Window owner,
+            List<CraftingItem> craftingItems,
+            List<CraftingMaterial> craftingMaterials,
+            Action<CraftingMaterial> registerNewCraftingMaterial,
+            Action<CraftingItem> deleteCraftingItem);
+
         int? ShowEditCountWindow(Window owner, int count);
         void ShowGenerateListWindow(Window owner, List<SpecifiedCraftingItem> craftingItems);
         ChooseMaterialTypeWindow.MaterialTypeChoice? ShowChooseMaterialTypeWindow(Window owner);
@@ -92,6 +101,28 @@ namespace ffxiv_crafter.Services
                 return null;
 
             return window.MaterialItems;
+        }
+
+        public IEnumerable<CraftingItem> ShowConfigureItemsWindow(
+            Window owner,
+            List<CraftingItem> craftingItems,
+            List<CraftingMaterial> craftingMaterials,
+            Action<CraftingMaterial> registerNewCraftingMaterial,
+            Action<CraftingItem> deleteCraftingItem)
+        {
+            var window = new ConfigureCraftingItemsWindow(
+                this,
+                craftingItems,
+                craftingMaterials.ToList(),
+                registerNewCraftingMaterial,
+                deleteCraftingItem);
+
+            window.Owner = owner;
+
+            if (!(window.ShowDialog() ?? false))
+                return null;
+
+            return window.CraftingItems;
         }
 
         public int? ShowEditCountWindow(Window owner, int count)

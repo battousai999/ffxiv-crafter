@@ -23,7 +23,7 @@ namespace ffxiv_crafter
     public partial class ConfigureMaterialsWindow : Window, INotifyPropertyChanged
     {
         private readonly IChildWindowProvider childWindowProvider;
-        private List<CraftingMaterial> materialItems;
+        private readonly List<CraftingMaterial> materialItems;
 
         public IEnumerable<CraftingMaterial> MaterialItems => materialItems.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
 
@@ -111,6 +111,8 @@ namespace ffxiv_crafter
                 return;
 
             materialItems.Remove(SelectedMaterialItem);
+
+            SelectedMaterialItem = null;
 
             Notify(nameof(MaterialItems));
             ResizeGridViewColumns();

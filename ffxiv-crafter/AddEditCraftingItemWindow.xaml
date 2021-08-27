@@ -58,9 +58,10 @@
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Item To Add" TextDecorations="Underline" />
 
             <Label Grid.Row="1" Grid.Column="0" Content="Name" />
-            <TextBox Grid.Row="2" Grid.Column="0" Name="txtAddItemName" Margin="0 0 10 0" Text="{Binding Path=AddItemName}"
+            <TextBox Grid.Row="2" Grid.Column="0" Name="txtAddItemName" Margin="0 0 10 0" Text="{Binding Path=AddItemName, UpdateSourceTrigger=PropertyChanged}"
                      behaviors:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding ValidItemNames}"
-                     behaviors:AutoCompleteBehavior.AutoCompleteStringComparison="CurrentCultureIgnoreCase"/>
+                     behaviors:AutoCompleteBehavior.AutoCompleteStringComparison="CurrentCultureIgnoreCase"
+                     KeyUp="txtAddItemName_KeyUp"/>
 
             <Label Grid.Row="1" Grid.Column="1" Content="#" />
             <TextBox Grid.Row="2" Grid.Column="1" Name="txtAddItemCount" MinWidth="50" Margin="0 0 10 0" Text="{Binding Path=AddItemCount}" />
