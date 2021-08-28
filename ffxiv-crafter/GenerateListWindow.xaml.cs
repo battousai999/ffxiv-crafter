@@ -19,8 +19,12 @@ namespace ffxiv_crafter
     /// </summary>
     public partial class GenerateListWindow : Window
     {
+        private readonly List<SpecifiedCraftingItem> itemsToBuild;
+
         public GenerateListWindow(List<SpecifiedCraftingItem> itemsToBuild)
         {
+            this.itemsToBuild = itemsToBuild;
+
             InitializeComponent();
 
             SetResourceReference(BackgroundProperty, SystemColors.ControlBrushKey);
@@ -110,6 +114,39 @@ namespace ffxiv_crafter
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void CopyToClickboard_Click(object sender, RoutedEventArgs e)
+        {
+            var builder = new StringBuilder();
+            var materials = itemsToBuild.GetAllMaterials();
+            var groupedMaterials = materials.GroupBy(x => x.Material.Location).ToList();
+            var sortedGroups = groupedMaterials.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase);
+            var isFirstGroup = true;
+
+            foreach (var group in sortedGroups)
+            {
+                if (isFirstGroup)
+                    isFirstGroup = false;
+                else
+                    builder.AppendLine();
+
+                var groupName = String.IsNullOrWhiteSpace(group.Key) ? "No Location" : group.Key;
+
+                builder.AppendLine(groupName);
+
+                var sortedItems = group
+                    .OrderBy(x => x.Material.SourceType.ToString(), StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+                foreach (var material in sortedItems)
+                {
+                    var annotation = material.Material.SourceType == SourceType.None ? "" : $" ({material.Material.SourceType})";
+                    builder.AppendLine($"{material.Name}{annotation}\t{material.Count}");
+                }
+            }
+
+            TextCopy.ClipboardService.SetText(builder.ToString());
         }
     }
 }
